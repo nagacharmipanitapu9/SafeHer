@@ -3,7 +3,7 @@ const sosStatus = document.getElementById('sos-status');
 let holdTimer;
 
 sosBtn.addEventListener('mousedown', function() {
-    holdTimer = setTimeout(triggerSOS, 1500); // Hold for 1.5 seconds
+    holdTimer = setTimeout(triggerSOS, 0.5); // Hold for 0.5 seconds
     sosBtn.style.transform = 'scale(0.9)';
 });
 
@@ -14,7 +14,7 @@ sosBtn.addEventListener('mouseup', function() {
 
 sosBtn.addEventListener('touchstart', function(e) {
     e.preventDefault();
-    holdTimer = setTimeout(triggerSOS, 1500);
+    holdTimer = setTimeout(triggerSOS, 0.5);
     sosBtn.style.transform = 'scale(0.9)';
 });
 

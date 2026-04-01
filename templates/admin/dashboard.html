@@ -1,32 +1,219 @@
 {% extends 'base.html' %}
 {% block title %}Admin Dashboard{% endblock %}
 
+{% block extra_css %}
+<style>
+    .admin-page { max-width: 1050px; margin: 0 auto; padding: 36px 20px; }
+    .admin-page h1 { font-size: 1.8rem; font-weight: 800; margin-bottom: 4px; }
+    .subtitle { color: #6b7280; margin-bottom: 28px; font-size: 0.95rem; }
+
+    .stats-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(145px, 1fr));
+        gap: 14px; margin-bottom: 28px;
+    }
+    .stat-card {
+        background: #fff; border-radius: 14px; padding: 20px;
+        box-shadow: 0 2px 12px rgba(0,0,0,0.07); text-align: center;
+        border-top: 4px solid #e5e7eb;
+    }
+    .stat-card .value { font-size: 2rem; font-weight: 800; }
+    .stat-card .label { color: #6b7280; font-size: 0.8rem; margin-top: 4px; }
+    .stat-card.total   { border-color:#6d28d9; } .stat-card.total   .value { color:#6d28d9; }
+    .stat-card.amber   { border-color:#f59e0b; } .stat-card.amber   .value { color:#f59e0b; }
+    .stat-card.blue    { border-color:#3b82f6; } .stat-card.blue    .value { color:#3b82f6; }
+    .stat-card.green   { border-color:#10b981; } .stat-card.green   .value { color:#10b981; }
+    .stat-card.purple  { border-color:#8b5cf6; } .stat-card.purple  .value { color:#8b5cf6; }
+    .stat-card.red     { border-color:#ef4444; } .stat-card.red     .value { color:#ef4444; }
+    .stat-card.gray    { border-color:#9ca3af; } .stat-card.gray    .value { color:#9ca3af; }
+
+    .action-row { display:flex; gap:12px; flex-wrap:wrap; margin-bottom:28px; }
+    .btn-action {
+        padding:10px 22px; border-radius:8px; font-weight:600; font-size:0.92rem;
+        text-decoration:none; display:inline-flex; align-items:center; gap:6px; transition:all 0.2s;
+    }
+    .btn-purple { background:#6d28d9; color:#fff !important; }
+    .btn-purple:hover { background:#5b21b6; }
+    .btn-outline { background:#fff; color:#6d28d9 !important; border:2px solid #6d28d9; }
+    .btn-outline:hover { background:#ede9fe; }
+
+    .section-title {
+        font-size:1.05rem; font-weight:700; color:#1f2937;
+        margin-bottom:12px; display:flex; align-items:center; gap:8px;
+    }
+    .count-badge {
+        background:#fef3c7; color:#92400e; font-size:0.75rem;
+        font-weight:600; padding:2px 10px; border-radius:20px;
+    }
+
+    .table-wrap { background:#fff; border-radius:14px; box-shadow:0 2px 12px rgba(0,0,0,0.07); overflow-x:auto; }
+    table { width:100%; border-collapse:collapse; font-size:0.86rem; min-width:750px; }
+    th { background:#f9fafb; padding:12px 14px; text-align:left; font-weight:600; color:#374151; border-bottom:1.5px solid #f3f4f6; }
+    td { padding:11px 14px; border-bottom:1px solid #f9fafb; color:#374151; vertical-align:middle; }
+    tr:last-child td { border-bottom:none; }
+    tr:hover td { background:#fafafe; }
+
+    .badge { display:inline-block; padding:3px 10px; border-radius:20px; font-size:0.73rem; font-weight:600; }
+    .badge-pending       { background:#fef3c7; color:#92400e; }
+    .badge-investigating { background:#dbeafe; color:#1e40af; }
+    .badge-approved      { background:#d1fae5; color:#065f46; }
+    .badge-resolved      { background:#ede9fe; color:#5b21b6; }
+    .badge-rejected      { background:#fee2e2; color:#991b1b; }
+    .badge-high   { background:#fee2e2; color:#991b1b; }
+    .badge-medium { background:#fef3c7; color:#92400e; }
+    .badge-low    { background:#d1fae5; color:#065f46; }
+
+    .status-select {
+        border:1.5px solid #d1d5db; border-radius:6px; padding:5px 10px;
+        font-size:0.8rem; font-weight:600; cursor:pointer;
+        background:#fff; color:#374151; transition:border-color 0.2s;
+    }
+    .status-select:focus { outline:none; border-color:#7c3aed; }
+
+    .desc-short { max-width:180px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; color:#6b7280; font-size:0.82rem; }
+    .empty-state { text-align:center; padding:40px; color:#9ca3af; font-size:0.9rem; }
+</style>
+{% endblock %}
+
 {% block content %}
 <div class="admin-page">
     <h1>Admin Dashboard 🔒</h1>
-    <p style="color:var(--text-light);margin-bottom:8px;">Monitor and manage SafeHer platform</p>
+    <p class="subtitle">Monitor and manage the SafeHer platform</p>
 
-    <div class="admin-stats">
-        <div class="card stat-card">
+    <div class="stats-grid">
+        <div class="stat-card total">
             <div class="value">{{ stats.total_crimes }}</div>
             <div class="label">Total Reports</div>
         </div>
-        <div class="card stat-card">
+        <div class="stat-card amber">
             <div class="value">{{ stats.pending_crimes }}</div>
-            <div class="label">Pending Review</div>
+            <div class="label">Pending</div>
         </div>
-        <div class="card stat-card">
-            <div class="value">{{ stats.total_sos }}</div>
-            <div class="label">SOS Alerts</div>
+        <div class="stat-card blue">
+            <div class="value">{{ stats.investigating }}</div>
+            <div class="label">Investigating</div>
         </div>
-        <div class="card stat-card">
+        <div class="stat-card purple">
+            <div class="value">{{ stats.resolved }}</div>
+            <div class="label">Resolved</div>
+        </div>
+        <div class="stat-card red">
+            <div class="value">{{ stats.rejected }}</div>
+            <div class="label">Rejected</div>
+        </div>
+        <div class="stat-card gray">
             <div class="value">{{ stats.total_users }}</div>
-            <div class="label">Registered Users</div>
+            <div class="label">Users</div>
         </div>
     </div>
 
-    <div style="display:flex;gap:12px;margin-bottom:24px;">
-        <a href="/admin/crimes" class="btn btn-primary">Review Crime Reports</a>
+    <div class="action-row">
+        <a href="/admin/crimes" class="btn-action btn-purple">📋 Review All Reports</a>
+        <a href="/admin/map"    class="btn-action btn-outline">🗺️ Crime Map</a>
+    </div>
+
+    <div class="section-title">
+        ⏳ Pending Reports
+        <span class="count-badge" id="pending-count">{{ stats.pending_crimes }}</span>
+    </div>
+
+    <div class="table-wrap">
+        <table>
+            <thead>
+                <tr>
+                    <th>#</th>
+                    <th>Type</th>
+                    <th>Description</th>
+                    <th>Severity</th>
+                    <th>Location</th>
+                    <th>Reporter</th>
+                    <th>Date</th>
+                    <th>Change Status</th>
+                </tr>
+            </thead>
+            <tbody id="pending-tbody">
+                <tr><td colspan="8" class="empty-state">⏳ Loading...</td></tr>
+            </tbody>
+        </table>
     </div>
 </div>
+
+<script>
+var pendingCount = 0;
+
+fetch('/crime/api/all-crimes')
+    .then(function(r) { return r.json(); })
+    .then(function(crimes) {
+        var pending = crimes.filter(function(c) { return c.status === 'pending'; });
+        pendingCount = pending.length;
+        document.getElementById('pending-count').textContent = pendingCount;
+        var tbody = document.getElementById('pending-tbody');
+
+        if (!pending.length) {
+            tbody.innerHTML = '<tr><td colspan="8" class="empty-state">✅ No pending reports — all caught up!</td></tr>';
+            return;
+        }
+
+        tbody.innerHTML = pending.map(function(c) {
+            var desc = (c.description || '').length > 60
+                ? (c.description || '').slice(0, 60) + '…'
+                : (c.description || '—');
+            return '<tr id="row-' + c.id + '">'
+                + '<td>#' + c.id + '</td>'
+                + '<td style="text-transform:capitalize;font-weight:600;">' + c.crime_type.replace('_', ' ') + '</td>'
+                + '<td class="desc-short" title="' + (c.description || '') + '">' + desc + '</td>'
+                + '<td><span class="badge badge-' + c.severity + '">' + c.severity + '</span></td>'
+                + '<td>' + (c.location_name || 'N/A') + '</td>'
+                + '<td>' + (c.reporter_name || 'User #' + c.user_id) + '</td>'
+                + '<td>' + (c.created_at || '').split(' ')[0] + '</td>'
+                + '<td>'
+                +   '<select class="status-select" onchange="changeStatus(' + c.id + ', this.value)">'
+                +     '<option value="pending"selected>⏳ Pending</option>'
+                +     '<option value="investigating">🔍 Investigating</option>'
+                +     '<option value="resolved">✔️ Resolved</option>'
+                +     '<option value="rejected">❌ Reject</option>'
+                +   '</select>'
+                + '</td>'
+                + '</tr>';
+        }).join('');
+    })
+    .catch(function(err) {
+        console.error('Failed to load crimes:', err);
+        document.getElementById('pending-tbody').innerHTML =
+            '<tr><td colspan="8" class="empty-state">❌ Could not load reports. Check console.</td></tr>';
+    });
+
+function changeStatus(id, newStatus) {
+    fetch('/admin/crimes/' + id + '/update-status', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ status: newStatus })
+    })
+    .then(function(r) { return r.json(); })
+    .then(function(data) {
+        if (data.error) { showToast('Error: ' + data.error, 'error'); return; }
+        showToast('Report #' + id + ' → ' + data.status, 'success');
+        if (data.status !== 'pending') {
+            var row = document.getElementById('row-' + id);
+            if (row) {
+                row.style.transition = 'opacity 0.5s';
+                row.style.opacity = '0.3';
+                setTimeout(function() {
+                    row.remove();
+                    pendingCount = Math.max(0, pendingCount - 1);
+                    document.getElementById('pending-count').textContent = pendingCount;
+                    var tbody = document.getElementById('pending-tbody');
+                    if (!tbody.querySelector('tr[id]')) {
+                        tbody.innerHTML = '<tr><td colspan="8" class="empty-state">✅ No pending reports!</td></tr>';
+                    }
+                }, 500);
+            }
+        }
+    })
+    .catch(function(err) {
+        console.error('Status update error:', err);
+        showToast('Failed to update. Check console.', 'error');
+    });
+}
+</script>
 {% endblock %}

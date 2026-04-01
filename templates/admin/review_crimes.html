@@ -1,64 +1,239 @@
 {% extends 'base.html' %}
-{% block title %}Review Crimes{% endblock %}
+{% block title %}Review Crime Reports{% endblock %}
+
+{% block extra_css %}
+<style>
+    .admin-page { max-width: 1150px; margin: 0 auto; padding: 36px 20px; }
+    .admin-page h1 { font-size: 1.8rem; font-weight: 800; margin-bottom: 4px; }
+    .subtitle { color: #6b7280; margin-bottom: 20px; font-size: 0.95rem; }
+
+    .filter-tabs { display:flex; gap:8px; margin-bottom:16px; flex-wrap:wrap; }
+    .filter-tab {
+        padding:7px 18px; border-radius:20px; border:1.5px solid #e5e7eb;
+        background:#fff; font-size:0.85rem; font-weight:600;
+        cursor:pointer; transition:all 0.2s; color:#374151;
+    }
+    .filter-tab.active { background:#6d28d9; color:#fff; border-color:#6d28d9; }
+    .filter-tab:hover:not(.active) { border-color:#7c3aed; color:#6d28d9; }
+
+    .summary-row { display:flex; gap:8px; margin-bottom:16px; flex-wrap:wrap; font-size:0.84rem; color:#6b7280; }
+    .summary-row strong { color:#1f2937; }
+
+    .table-wrap { background:#fff; border-radius:14px; box-shadow:0 2px 12px rgba(0,0,0,0.07); overflow-x:auto; }
+    table { width:100%; border-collapse:collapse; font-size:0.85rem; min-width:900px; }
+    th { background:#f9fafb; padding:12px 14px; text-align:left; font-weight:600; color:#374151; border-bottom:1.5px solid #f3f4f6; }
+    td { padding:11px 14px; border-bottom:1px solid #f9fafb; color:#374151; vertical-align:middle; }
+    tr:last-child td { border-bottom:none; }
+    tr:hover td { background:#fafafe; }
+
+    .badge { display:inline-block; padding:3px 10px; border-radius:20px; font-size:0.73rem; font-weight:600; }
+    .badge-pending       { background:#fef3c7; color:#92400e; }
+    .badge-investigating { background:#dbeafe; color:#1e40af; }
+    .badge-approved      { background:#d1fae5; color:#065f46; }
+    .badge-resolved      { background:#ede9fe; color:#5b21b6; }
+    .badge-rejected      { background:#fee2e2; color:#991b1b; }
+    .badge-high   { background:#fee2e2; color:#991b1b; }
+    .badge-medium { background:#fef3c7; color:#92400e; }
+    .badge-low    { background:#d1fae5; color:#065f46; }
+
+    .status-select {
+        border:1.5px solid #d1d5db; border-radius:6px; padding:6px 10px;
+        font-size:0.8rem; font-weight:600; cursor:pointer;
+        background:#fff; color:#374151; min-width:155px; transition:border-color 0.2s;
+    }
+    .status-select:focus { outline:none; border-color:#7c3aed; }
+
+    .desc-cell { max-width:200px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; color:#6b7280; font-size:0.82rem; cursor:help; }
+    .empty-state { text-align:center; padding:48px; color:#9ca3af; }
+
+    /* Detail expand row */
+    .detail-row td { background:#faf5ff; padding:16px 20px; }
+    .detail-grid { display:grid; grid-template-columns:1fr 1fr; gap:12px; font-size:0.86rem; }
+    .detail-item strong { display:block; color:#6d28d9; font-size:0.75rem; text-transform:uppercase; letter-spacing:0.5px; margin-bottom:3px; }
+    .btn-expand { background:none; border:none; cursor:pointer; color:#6d28d9; font-size:1rem; padding:0 4px; }
+</style>
+{% endblock %}
 
 {% block content %}
 <div class="admin-page">
     <h1>Review Crime Reports 📋</h1>
-    <p style="color:var(--text-light);margin-bottom:24px;">Approve or reject submitted reports</p>
+    <p class="subtitle">View full details and manage status of all submitted reports</p>
 
-    <div class="table-container">
+    <div class="filter-tabs">
+        <button class="filter-tab active" onclick="filterTable('all', this)">All ({{ crimes|length }})</button>
+        <button class="filter-tab" onclick="filterTable('pending', this)">⏳ Pending</button>
+        <button class="filter-tab" onclick="filterTable('investigating', this)">🔍 Investigating</button>
+        <button class="filter-tab" onclick="filterTable('resolved', this)">✔️ Resolved</button>
+        <button class="filter-tab" onclick="filterTable('rejected', this)">❌ Rejected</button>
+    </div>
+
+    <div class="summary-row">
+        Showing <strong id="visible-count">{{ crimes|length }}</strong>
+        of <strong>{{ crimes|length }}</strong> reports.
+        <span style="margin-left:8px;">Click <strong>▶</strong> to expand report details.</span>
+    </div>
+
+    <div class="table-wrap">
         <table>
             <thead>
                 <tr>
-                    <th>ID</th>
+                    <th></th>
+                    <th>#</th>
                     <th>Reporter</th>
                     <th>Type</th>
+                    <th>Description</th>
                     <th>Severity</th>
                     <th>Location</th>
-                    <th>Status</th>
                     <th>Date</th>
-                    <th>Actions</th>
+                    <th>Status</th>
+                    <th>Change Status</th>
                 </tr>
             </thead>
-            <tbody>
+            <tbody id="crimes-tbody">
                 {% for crime in crimes %}
-                <tr id="crime-{{ crime.id }}">
-                    <td>#{{ crime.id }}</td>
+                <tr id="crime-{{ crime.id }}" data-status="{{ crime.status }}">
+                    <td>
+                        <button class="btn-expand" onclick="toggleDetail({{ crime.id }})" title="Expand details">▶</button>
+                    </td>
+                    <td><strong>#{{ crime.id }}</strong></td>
                     <td>{{ crime.reporter_name }}</td>
-                    <td>{{ crime.crime_type }}</td>
+                    <td style="text-transform:capitalize;font-weight:600;">{{ crime.crime_type.replace('_', ' ') }}</td>
+                    <td class="desc-cell" title="{{ crime.description }}">{{ crime.description or '—' }}</td>
                     <td><span class="badge badge-{{ crime.severity }}">{{ crime.severity }}</span></td>
                     <td>{{ crime.location_name or 'N/A' }}</td>
-                    <td><span class="badge badge-{{ crime.status }}" id="status-{{ crime.id }}">{{ crime.status }}</span></td>
-                    <td>{{ crime.created_at }}</td>
+                    <td>{{ crime.created_at.split(' ')[0] if crime.created_at else '—' }}</td>
                     <td>
-                        {% if crime.status == 'pending' %}
-                        <button class="btn btn-success btn-sm" onclick="updateCrime(`{{ crime.id }}`, 'approve')">✓</button>
-                        <button class="btn btn-danger btn-sm" onclick="updateCrime(`{{ crime.id }}`, 'reject')">✗</button>
-                        {% else %}
-                        —
-                        {% endif %}
+                        <span class="badge badge-{{ crime.status }}" id="badge-{{ crime.id }}">
+                            {{ crime.status }}
+                        </span>
                     </td>
+                    <td>
+                        <select class="status-select" id="select-{{ crime.id }}"
+                                onchange="changeStatus({{ crime.id }}, this.value)">
+                            <option value="pending"       {% if crime.status=='pending'       %}selected{% endif %}>⏳ Pending</option>
+                            <option value="investigating" {% if crime.status=='investigating' %}selected{% endif %}>🔍 Investigating</option>
+                            <option value="resolved"      {% if crime.status=='resolved'      %}selected{% endif %}>✔️ Resolved</option>
+                            <option value="rejected"      {% if crime.status=='rejected'      %}selected{% endif %}>❌ Rejected</option>
+                        </select>
+                    </td>
+                </tr>
+                <!-- Hidden detail row -->
+                <tr id="detail-{{ crime.id }}" class="detail-row" style="display:none;">
+                    <td colspan="10">
+                        <div class="detail-grid">
+                            <div class="detail-item">
+                                <strong>Full Description</strong>
+                                {{ crime.description or 'No description provided.' }}
+                            </div>
+                            <div class="detail-item">
+                                <strong>Exact Location</strong>
+                                {{ crime.location_name or 'N/A' }}<br>
+                                <span style="font-family:monospace;font-size:0.8rem;color:#9ca3af;">
+                                    Lat: {{ crime.latitude }}, Lng: {{ crime.longitude }}
+                                </span>
+                            </div>
+                            <div class="detail-item">
+                                <strong>Reporter</strong>
+                                {{ crime.reporter_name }} (User #{{ crime.user_id }})
+                            </div>
+                            <div class="detail-item">
+                                <strong>Submitted At</strong>
+                                {{ crime.created_at or '—' }}
+                            </div>
+                            {% if crime.attachments %}
+                            <div class="detail-item" style="grid-column:span 2;">
+                                <strong>Attachments</strong>
+                                {% for file in crime.attachments.split(',') %}
+                                    {% if file.strip() %}
+                                        {% set ext = file.strip().rsplit('.', 1)[-1].lower() %}
+                                        {% if ext in ['jpg','jpeg','png','gif'] %}
+                                            <img src="/static/uploads/{{ file.strip() }}"
+                                                 style="height:80px;border-radius:6px;margin-right:8px;border:1px solid #e5e7eb;">
+                                        {% else %}
+                                            <a href="/static/uploads/{{ file.strip() }}" target="_blank"
+                                               style="color:#6d28d9;">🎵 {{ file.strip() }}</a>
+                                        {% endif %}
+                                    {% endif %}
+                                {% endfor %}
+                            </div>
+                            {% endif %}
+                        </div>
+                    </td>
+                </tr>
+                {% else %}
+                <tr>
+                    <td colspan="10" class="empty-state">No reports found.</td>
                 </tr>
                 {% endfor %}
             </tbody>
         </table>
     </div>
 </div>
-{% endblock %}
 
-{% block extra_js %}
 <script>
-function updateCrime(id, action) {
-    fetch(`/admin/crimes/${id}/${action}`, { method: 'POST' })
-        .then(r => r.json())
-        .then(data => {
-            const badge = document.getElementById(`status-${id}`);
-            badge.textContent = data.status;
-            badge.className = `badge badge-${data.status}`;
-            // Remove action buttons
-            const row = document.getElementById(`crime-${id}`);
-            row.querySelector('td:last-child').textContent = '—';
-        });
+function toggleDetail(id) {
+    var detailRow = document.getElementById('detail-' + id);
+    var btn = document.querySelector('#crime-' + id + ' .btn-expand');
+    if (detailRow.style.display === 'none') {
+        detailRow.style.display = '';
+        btn.textContent = '▼';
+    } else {
+        detailRow.style.display = 'none';
+        btn.textContent = '▶';
+    }
+}
+
+function changeStatus(id, newStatus) {
+    fetch('/admin/crimes/' + id + '/update-status', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ status: newStatus })
+    })
+    .then(function(r) { return r.json(); })
+    .then(function(data) {
+        if (data.error) { showToast('Error: ' + data.error, 'error'); return; }
+
+        var badge = document.getElementById('badge-' + id);
+        badge.textContent = data.status;
+        badge.className   = 'badge badge-' + data.status;
+
+        var row = document.getElementById('crime-' + id);
+        row.dataset.status = data.status;
+
+        showToast('Report #' + id + ' → ' + data.status, 'success');
+
+        // Re-apply current filter
+        var activeTab = document.querySelector('.filter-tab.active');
+        if (activeTab) {
+            var currentFilter = activeTab.dataset.filterVal || 'all';
+            applyFilter(currentFilter);
+        }
+    })
+    .catch(function() { showToast('Failed to update. Try again.', 'error'); });
+}
+
+function filterTable(status, tabEl) {
+    document.querySelectorAll('.filter-tab').forEach(function(t) { t.classList.remove('active'); });
+    if (tabEl) {
+        tabEl.classList.add('active');
+        tabEl.dataset.filterVal = status;
+    }
+    applyFilter(status);
+}
+
+function applyFilter(status) {
+    var rows   = document.querySelectorAll('#crimes-tbody tr[data-status]');
+    var visible = 0;
+    rows.forEach(function(row) {
+        var show = (status === 'all' || row.dataset.status === status);
+        row.style.display = show ? '' : 'none';
+        // Also hide/show its detail row
+        var detailRow = document.getElementById('detail-' + row.id.replace('crime-', ''));
+        if (detailRow) detailRow.style.display = 'none'; // collapse on filter
+        if (show) visible++;
+    });
+    var countEl = document.getElementById('visible-count');
+    if (countEl) countEl.textContent = visible;
 }
 </script>
 {% endblock %}

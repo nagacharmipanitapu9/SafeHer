@@ -35,6 +35,7 @@ def init_db():
         location_name TEXT,
         status TEXT DEFAULT 'pending',
         severity TEXT DEFAULT 'medium',
+        attachments TEXT DEFAULT '',
         created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
         FOREIGN KEY (user_id) REFERENCES users(id)
     )''')
@@ -60,21 +61,28 @@ def init_db():
         FOREIGN KEY (user_id) REFERENCES users(id)
     )''')
 
-    # Seed default admin
-    admin_email = 'admin@safeher.com'
-    if not c.execute('SELECT id FROM users WHERE email = ?', (admin_email,)).fetchone():
-        c.execute(
-            'INSERT INTO users (name, email, password, phone, role) VALUES (?, ?, ?, ?, ?)',
-            ('Admin', admin_email, generate_password_hash('admin123'), '9999999999', 'admin')
-        )
+    # Safe migrations — add missing columns to existing DB
+    safe_migrations = [
+        "ALTER TABLE crimes ADD COLUMN attachments TEXT DEFAULT ''",
+        "ALTER TABLE users  ADD COLUMN address TEXT",
+        "ALTER TABLE users  ADD COLUMN emergency_contact_name TEXT",
+        "ALTER TABLE users  ADD COLUMN emergency_contact_phone TEXT",
+    ]
+    for sql in safe_migrations:
+        try:
+            c.execute(sql)
+        except Exception:
+            pass  # column already exists
 
-    # Seed default user
-    user_email = 'user@safeher.com'
-    if not c.execute('SELECT id FROM users WHERE email = ?', (user_email,)).fetchone():
-        c.execute(
-            'INSERT INTO users (name, email, password, phone, role) VALUES (?, ?, ?, ?, ?)',
-            ('Demo User', user_email, generate_password_hash('user123'), '8888888888', 'user')
-        )
+    # Default admin
+    if not c.execute("SELECT id FROM users WHERE email='admin@safeher.com'").fetchone():
+        c.execute("INSERT INTO users (name,email,password,phone,role) VALUES (?,?,?,?,?)",
+                  ('Admin','admin@safeher.com', generate_password_hash('admin123'),'9999999999','admin'))
+
+    # Default user
+    if not c.execute("SELECT id FROM users WHERE email='user@safeher.com'").fetchone():
+        c.execute("INSERT INTO users (name,email,password,phone,role) VALUES (?,?,?,?,?)",
+                  ('Demo User','user@safeher.com', generate_password_hash('user123'),'8888888888','user'))
 
     conn.commit()
     conn.close()

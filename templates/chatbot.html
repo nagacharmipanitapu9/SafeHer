@@ -7,26 +7,227 @@
     <p style="color:var(--text-light);margin-bottom:16px;">
         Ask me about nearby police stations, hospitals, legal rights, or safety tips.
     </p>
+    <style>
+        /* PAGE */
+        .chatbot-page{
+            display:flex;
+            flex-direction:column;
+            align-items:center;
+            padding:30px;
+            background:#f6f4f9;
+            font-family:'Poppins',sans-serif;
+        }
 
+        /* CHAT CARD */
+        .chat-container{
+            width:900px;
+            height:520px;
+            background:#fff;
+            border-radius:18px;
+            box-shadow:0 10px 30px rgba(0,0,0,0.08);
+            display:flex;
+            flex-direction:column;
+            overflow:hidden;
+        }
+
+        /* HEADER */
+        .chat-header{
+            background:linear-gradient(135deg,#7b2cbf,#e84393);
+            color:white;
+            padding:16px;
+            font-weight:600;
+        }
+
+        /* MESSAGES */
+        .chat-messages{
+            flex:1;
+            padding:20px;
+            overflow-y:auto;
+            background:#f8f7fb;
+        }
+
+        /* CHAT BUBBLES */
+        .message{
+            max-width:70%;
+            padding:12px 16px;
+            border-radius:14px;
+            margin-bottom:12px;
+            font-size:14px;
+        }
+
+        .message.bot{
+            background:#ece9f3;
+        }
+
+        .message.user{
+            background:#7b2cbf;
+            color:white;
+            margin-left:auto;
+        }
+
+        /* INPUT AREA */
+        /* INPUT AREA */
+.chat-input-area{
+    display:flex;
+    align-items:center;
+    padding:14px 18px;
+    gap:10px;
+    border-top:1px solid #eee;
+    background:#ffffff;
+}
+
+/* TEXT FIELD */
+.chat-input-area input{
+    flex:1;
+    padding:14px 18px;
+    border-radius:30px;
+    border:2px solid #e5e5e5;
+    font-size:14px;
+    outline:none;
+    transition:all 0.25s ease;
+    background:#fafafa;
+}
+
+/* INPUT FOCUS */
+.chat-input-area input:focus{
+    border-color:#9d4edd;
+    background:white;
+    box-shadow:0 0 0 3px rgba(157,78,221,0.1);
+}
+
+/* SEND BUTTON */
+.chat-input-area button{
+    width:46px;
+    height:46px;
+    border-radius:50%;
+    border:none;
+    cursor:pointer;
+    background:linear-gradient(135deg,#7b2cbf,#e84393);
+    color:white;
+    font-size:18px;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    transition:all 0.2s ease;
+}
+
+/* SEND BUTTON HOVER */
+.chat-input-area button:hover{
+    transform:scale(1.05);
+    box-shadow:0 6px 14px rgba(0,0,0,0.15);
+}
+
+        /* QUICK BUTTONS BELOW CHAT */
+        .quick-options{
+            display:flex;
+            justify-content:center;
+            gap:12px;
+            margin-top:15px;
+        }
+
+        .quick-options button{
+            background:#eee8f7;
+            border:none;
+            padding:10px 18px;
+            border-radius:20px;
+            font-size:14px;
+            cursor:pointer;
+            transition:0.3s;
+        }
+
+        .quick-options button:hover{
+            background:#d9c8f5;
+        }
+        
+        /* FAQ SECTION */
+        /* FAQ SECTION */
+.faq-section{
+    width:900px;
+    margin-top:25px;
+}
+
+.faq-title{
+    font-weight:600;
+    margin-bottom:12px;
+    color:#555;
+}
+
+/* LIST STYLE */
+.faq-list{
+    display:flex;
+    flex-direction:column;
+    gap:10px;
+}
+
+/* RECTANGULAR QUESTION ITEMS */
+.faq-item{
+    background:#f4f2fa;
+    padding:14px 18px;
+    border-radius:10px;
+    cursor:pointer;
+    font-size:14px;
+    transition:0.2s;
+    border:1px solid #e5e5e5;
+}
+
+/* HOVER EFFECT */
+.faq-item:hover{
+    background:#ebe6ff;
+    border-color:#9d4edd;
+}
+    </style>
     <div class="chat-container">
 
         <div class="chat-header">🤖 SafeHer Assistant</div>
 
         <div class="chat-messages" id="messages"></div>
 
+        <div class="chat-input-area">
+            <input type="text" id="userInput" placeholder="Type your message..." onkeypress="if(event.key==='Enter')chatbot()">
+            <button onclick="chatbot()">
+                <span>➤</span>
+            </button>
+        </div>
+    </div>
         <!-- QUICK BUTTONS -->
         <div class="quick-options">
-            <button onclick="quickMsg('police')">🚓 Police</button>
-            <button onclick="quickMsg('hospital')">🏥 Hospital</button>
-            <button onclick="quickMsg('follow')">🚶 Followed</button>
+            <button onclick="quickMsg('Police')">🚓 Police</button>
+            <button onclick="quickMsg('Hospital')">🏥 Hospital</button>
+            <button onclick="quickMsg('Follow')">🚶 Followed</button>
         </div>
+    <div class="faq-section">
 
-        <div class="chat-input">
-            <input type="text" id="userInput" placeholder="Ask about safety...">
-            <button onclick="chatbot()">Send</button>
+        <p class="faq-title">Common Safety Questions</p>
+
+        <div class="faq-list">
+
+            <div class="faq-item" onclick="faqMsg('📞 What is the emergency number?')">
+                📞 What is the emergency number?
+            </div>
+
+            <div class="faq-item" onclick="faqMsg('📍 How can I share my live location?')">
+                📍 How can I share my live location?
+            </div>
+
+            <div class="faq-item" onclick="faqMsg('⚠️ What should I do if I feel unsafe?')">
+                ⚠️ What should I do if I feel unsafe?
+            </div>
+
+            <div class="faq-item" onclick="faqMsg('🌙 What are some late night safety tips?')">
+                🌙 What are some late night safety tips?
+            </div>
+
+            <div class="faq-item" onclick="faqMsg('🚨 How can I report a crime?')">
+                🚨 How can I report a crime?
+            </div>
+
+            <div class="faq-item" onclick="faqMsg('🚌 What are some safe travel tips?')">
+                🚌 What are some safe travel tips?
+            </div>
+
         </div>
-
     </div>
+    
 </div>
 {% endblock %}
 

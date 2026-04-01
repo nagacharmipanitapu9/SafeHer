@@ -150,35 +150,39 @@
             </div>
         </div>
 
-        <!-- Emergency Contact -->
-        <div class="card">
-            <h3>🆘 Emergency Contact</h3>
-            <p style="color:#6b7280;font-size:0.88rem;margin-top:-10px;margin-bottom:16px;">
-                This person will be notified when you trigger an SOS alert.
-            </p>
-            <div class="form-row">
-                <div class="form-group">
-                    <label>Contact Name</label>
-                    <input type="text" name="emergency_contact_name"
-                           value="{{ user.emergency_contact_name or '' }}"
-                           placeholder="e.g. Mom, Sister">
-                </div>
-                <div class="form-group">
-                    <label>Contact Phone</label>
-                    <div class="phone-wrapper">
-                        <input type="tel" name="emergency_contact_phone" id="ec-phone"
-                               value="{{ user.emergency_contact_phone or '' }}"
-                               placeholder="9876543210"
-                               maxlength="10" inputmode="numeric">
-                        <span class="phone-counter" id="ec-counter">
-                            {{ (user.emergency_contact_phone or '')|length }}/10
-                        </span>
-                    </div>
-                    <div class="field-error" id="ec-phone-error">Must be exactly 10 digits.</div>
-                </div>
-            </div>
-        </div>
+<!-- Emergency Contact -->
+<div class="card">
 
+    <h3>🆘 Emergency Contacts</h3>
+
+    <p style="color:#6b7280;font-size:0.88rem;margin-bottom:16px;">
+        Add and manage people who will be notified during emergencies.
+    </p>
+
+    <!-- HIDDEN FIELD -->
+    <input type="hidden" name="contacts_json" id="contactsJson" value='{{ contacts|tojson | safe }}'>
+
+    <!-- INPUT ROW -->
+    <div class="form-row">
+        <div class="form-group">
+            <label>Contact Name</label>
+            <input type="text" id="cname" placeholder="e.g. Mom, Friend">
+        </div>
+        <div class="form-group">
+            <label>Contact Phone</label>
+            <input type="tel" id="cphone" placeholder="9876543210" maxlength="10">
+        </div>
+    </div>
+
+    <!-- ADD BUTTON -->
+    <button type="button" class="btn-save" onclick="addContact()" style="margin-bottom:10px;">
+        ➕ Add Contact
+    </button>
+
+    <!-- CONTACT LIST -->
+    <div id="contactList"></div>
+
+</div>
         <!-- Change Password -->
         <div class="card">
             <h3>🔒 Change Password</h3>
@@ -228,7 +232,6 @@
     }
 
     setupPhoneInput('phone',    'phone-counter',  'phone-error');
-    setupPhoneInput('ec-phone', 'ec-counter',     'ec-phone-error');
 
     // ── Password toggle ────────────────────────────────────
     function togglePw() {
@@ -238,6 +241,7 @@
 
     // ── Form validation ────────────────────────────────────
     document.getElementById('profileForm').addEventListener('submit', function(e) {
+        saveContacts();
         var valid = true;
 
         function showErr(errId, inputEl) {
@@ -275,5 +279,108 @@
 
         if (!valid) e.preventDefault();
     });
+    let profileContacts = [];
+
+    function saveContacts() {
+        var hidden = document.getElementById('contactsJson');
+        if (hidden) {
+            hidden.value = JSON.stringify(profileContacts);
+        }
+        localStorage.setItem('contacts', JSON.stringify(profileContacts));
+    }
+
+    function loadContacts() {
+        var hidden = document.getElementById('contactsJson');
+        try {
+            profileContacts = hidden && hidden.value ? JSON.parse(hidden.value) : [];
+        } catch (e) {
+            profileContacts = [];
+        }
+        var local = JSON.parse(localStorage.getItem('contacts') || '[]');
+        if (!profileContacts.length && local.length) {
+            profileContacts = local;
+        }
+        saveContacts();
+        displayContacts();
+    }
+
+    function addContact() {
+        var name = document.getElementById('cname').value.trim();
+        var phone = document.getElementById('cphone').value.trim();
+        if (!name || !phone || phone.length !== 10) {
+            alert('Please enter a valid name and 10-digit phone number.');
+            return;
+        }
+        profileContacts.push({ name: name, phone: phone });
+        document.getElementById('cname').value = '';
+        document.getElementById('cphone').value = '';
+        saveContacts();
+        displayContacts();
+    }
+
+    function editContact(index) {
+        var contact = profileContacts[index];
+        var newName = prompt('Edit contact name:', contact.name);
+        if (newName === null) return;
+        var newPhone = prompt('Edit contact phone (10 digits):', contact.phone);
+        if (newPhone === null) return;
+
+        newName = newName.trim();
+        newPhone = newPhone.trim().replace(/\D/g, '');
+        if (!newName || newPhone.length !== 10) {
+            alert('Invalid update; phone must be 10 digits.');
+            return;
+        }
+
+        profileContacts[index] = { name: newName, phone: newPhone };
+        saveContacts();
+        displayContacts();
+    }
+
+    function deleteContact(index) {
+        if (!confirm('Remove this emergency contact?')) return;
+        profileContacts.splice(index, 1);
+        saveContacts();
+        displayContacts();
+    }
+
+    function sendSOS(index) {
+        alert('SOS will notify ' + profileContacts[index].name + ' at ' + profileContacts[index].phone + '.');
+    }
+
+    function displayContacts() {
+        let list = document.getElementById('contactList');
+        if (!list) return;
+
+        list.innerHTML = '';
+        if (!profileContacts.length) {
+            list.innerHTML = '<p style="color:#6b7280;">No emergency contacts added yet.</p>';
+            return;
+        }
+
+        profileContacts.forEach((c, index) => {
+            let div = document.createElement('div');
+            div.style.borderTop = '1px solid #f3f4f6';
+            div.style.padding = '12px 0';
+
+            div.innerHTML = `
+                <div style="display:flex;justify-content:space-between;align-items:center;">
+                    <div>
+                        <div style="font-weight:600;color:#1f2937;">${c.name}</div>
+                        <div style="color:#6b7280;font-size:0.9rem;">📞 ${c.phone}</div>
+                    </div>
+                    <div style="display:flex;gap:6px;">
+                        <button onclick="editContact(${index})" style="background:#f59e0b;color:white;border:none;padding:6px 8px;border-radius:6px;">✏️</button>
+                        <button onclick="deleteContact(${index})" style="background:#ef4444;color:white;border:none;padding:6px 8px;border-radius:6px;">🗑️</button>
+                        <button onclick="sendSOS(${index})" style="background:#dc2626;color:white;border:none;padding:6px 8px;border-radius:6px;">🚨</button>
+                    </div>
+                </div>
+            `;
+            list.appendChild(div);
+        });
+    }
+
+    // initialize once page loads
+    loadContacts();
 </script>
 {% endblock %}

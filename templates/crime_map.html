@@ -5,53 +5,33 @@
 <style>
     .map-page { max-width: 1100px; margin: 0 auto; padding: 36px 20px; }
     .map-page h1 { font-size: 1.8rem; font-weight: 800; margin-bottom: 4px; }
-    .map-page .subtitle { color: #6b7280; margin-bottom: 20px; font-size: 0.95rem; }
-
-    .map-legend {
-        display: flex; flex-wrap: wrap; gap: 10px;
-        margin-bottom: 16px;
-    }
+    .subtitle { color: #6b7280; margin-bottom: 16px; font-size: 0.95rem; }
+    .map-legend { display:flex; flex-wrap:wrap; gap:8px; margin-bottom:14px; }
     .legend-item {
-        background: #fff; border: 1.5px solid #e5e7eb;
-        border-radius: 20px; padding: 5px 14px;
-        font-size: 0.82rem; font-weight: 500; color: #374151;
-        box-shadow: 0 1px 4px rgba(0,0,0,0.05);
+        background:#fff; border:1.5px solid #e5e7eb; border-radius:20px;
+        padding:4px 14px; font-size:0.82rem; font-weight:500; color:#374151;
+        box-shadow:0 1px 3px rgba(0,0,0,0.05);
     }
-
-    /* Map MUST have explicit height */
     #crime-map {
-        width: 100%;
-        height: 560px;
-        border-radius: 14px;
-        overflow: hidden;
-        border: 1.5px solid #e5e7eb;
-        box-shadow: 0 2px 12px rgba(0,0,0,0.07);
-        position: relative;
-        z-index: 1;
+        width:100%; height:520px; border-radius:14px; overflow:hidden;
+        border:1.5px solid #e5e7eb; box-shadow:0 2px 12px rgba(0,0,0,0.07);
+        position:relative; z-index:1;
     }
-
-    .map-note {
-        margin-top: 12px; font-size: 0.82rem; color: #9ca3af; text-align: center;
-    }
-
-    /* Stats bar below map */
-    .map-stats {
-        display: flex; gap: 16px; margin-top: 20px; flex-wrap: wrap;
-    }
+    .map-note { margin-top:10px; font-size:0.8rem; color:#9ca3af; text-align:center; }
+    #map-stats { display:flex; flex-wrap:wrap; gap:12px; margin-top:20px; }
     .map-stat {
-        background: #fff; border-radius: 10px; padding: 14px 20px;
-        box-shadow: 0 2px 8px rgba(0,0,0,0.06); flex: 1; min-width: 140px;
-        text-align: center;
+        background:#fff; border-radius:10px; padding:14px 18px;
+        box-shadow:0 2px 8px rgba(0,0,0,0.06); flex:1; min-width:110px; text-align:center;
     }
-    .map-stat .val { font-size: 1.5rem; font-weight: 800; color: #6d28d9; }
-    .map-stat .lbl { font-size: 0.8rem; color: #6b7280; margin-top: 2px; }
+    .map-stat .val { font-size:1.6rem; font-weight:800; }
+    .map-stat .lbl { font-size:0.78rem; color:#6b7280; margin-top:2px; }
 </style>
 {% endblock %}
 
 {% block content %}
 <div class="map-page">
     <h1>Crime Map 🗺️</h1>
-    <p class="subtitle">View verified incidents reported in your area</p>
+    <p class="subtitle">View all reported incidents in your area</p>
 
     <div class="map-legend">
         <div class="legend-item">⚠️ Harassment</div>
@@ -60,127 +40,21 @@
         <div class="legend-item">🟠 Stalking</div>
         <div class="legend-item">🟣 Domestic Violence</div>
         <div class="legend-item">⚪ Other</div>
-        <div class="legend-item" style="border-color:#fca5a5;color:#991b1b;">⏳ Pending Review</div>
+        <div class="legend-item" style="border-color:#fca5a5;color:#991b1b;">⏳ Pending</div>
+        <div class="legend-item" style="border-color:#93c5fd;color:#1e40af;">🔍 Investigating</div>
+        <div class="legend-item" style="border-color:#a78bfa;color:#5b21b6;">✔️ Resolved</div>
     </div>
 
     <div id="crime-map"></div>
 
-    <p class="map-note">
-        📌 Verified reports shown in full colour. Pending reports shown dimmed and only visible to the reporter.
-    </p>
+    <p class="map-note">Verified reports shown in full colour · Pending/investigating shown dimmed</p>
 
-    <div class="map-stats" id="map-stats"></div>
+    <div id="map-stats">
+        <div class="map-stat"><div class="val" style="color:#9ca3af;">…</div><div class="lbl">Loading</div></div>
+    </div>
 </div>
 {% endblock %}
 
 {% block extra_js %}
-<script>
-document.addEventListener('DOMContentLoaded', function () {
-
-    var map = L.map('crime-map').setView([17.385, 78.486], 13);
-
-    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-        attribution: '© <a href="https://www.openstreetmap.org/">OpenStreetMap</a> contributors',
-        maxZoom: 19
-    }).addTo(map);
-
-    setTimeout(function () { map.invalidateSize(); }, 200);
-
-    // Auto-center on user location
-    if (navigator.geolocation) {
-        navigator.geolocation.getCurrentPosition(function (pos) {
-            map.setView([pos.coords.latitude, pos.coords.longitude], 14);
-            L.marker([pos.coords.latitude, pos.coords.longitude])
-                .addTo(map)
-                .bindPopup('<b>📍 You are here</b>')
-                .openPopup();
-        }, function() {});
-    }
-
-    var crimeIcons = {
-        harassment:        '⚠️',
-        assault:           '🔴',
-        theft:             '🟡',
-        stalking:          '🟠',
-        domestic_violence: '🟣',
-        other:             '⚪'
-    };
-
-    var severityColor = { low: '#10b981', medium: '#f59e0b', high: '#ef4444' };
-
-    function renderCrimes(crimes, isPending) {
-        crimes.forEach(function (crime) {
-            var emoji   = crimeIcons[crime.crime_type] || '📍';
-            var opacity = isPending ? 0.5 : 1;
-            var icon    = L.divIcon({
-                html: '<span style="font-size:1.6rem;opacity:' + opacity + ';">' + emoji + '</span>',
-                className: '',
-                iconSize: [32, 32],
-                iconAnchor: [16, 32]
-            });
-
-            var badge = isPending
-                ? '<span style="background:#fef3c7;color:#92400e;padding:2px 8px;border-radius:10px;font-size:0.75rem;">⏳ Pending Review</span>'
-                : '<span style="background:#d1fae5;color:#065f46;padding:2px 8px;border-radius:10px;font-size:0.75rem;">✅ Verified</span>';
-
-            var sevColor = severityColor[crime.severity] || '#6b7280';
-            var sevBadge = '<span style="background:' + sevColor + '22;color:' + sevColor + ';padding:2px 8px;border-radius:10px;font-size:0.75rem;font-weight:600;">'
-                + (crime.severity || 'medium').toUpperCase() + '</span>';
-
-            var popup = '<div style="min-width:200px;font-family:sans-serif;line-height:1.5;">'
-                + '<b style="font-size:0.95rem;text-transform:capitalize;">'
-                + crime.crime_type.replace('_', ' ') + '</b>'
-                + '<div style="margin:5px 0;display:flex;gap:6px;flex-wrap:wrap;">' + badge + ' ' + sevBadge + '</div>'
-                + (crime.description ? '<p style="color:#374151;font-size:0.84rem;margin:4px 0;">' + crime.description + '</p>' : '')
-                + '<p style="color:#9ca3af;font-size:0.78rem;margin:4px 0 0;">'
-                + (crime.location_name || '') + (crime.created_at ? ' &bull; ' + crime.created_at.split(' ')[0] : '')
-                + '</p></div>';
-
-            L.marker([crime.latitude, crime.longitude], { icon: icon })
-                .addTo(map)
-                .bindPopup(popup);
-        });
-    }
-
-    var totalVerified = 0;
-
-    // Load approved (public) crimes
-    fetch('/crime/api/crimes')
-        .then(function(r) { return r.json(); })
-        .then(function(crimes) {
-            totalVerified = crimes.length;
-            renderCrimes(crimes, false);
-            renderStats(crimes);
-        })
-        .catch(function() {
-            showToast('Could not load crime data.', 'error');
-        });
-
-    // If redirected after report submission, also load pending crimes
-    var params = new URLSearchParams(window.location.search);
-    if (params.get('submitted') === '1') {
-        fetch('/crime/api/all-crimes')
-            .then(function(r) { return r.json(); })
-            .then(function(all) {
-                var pending = all.filter(function(c) { return c.status === 'pending'; });
-                renderCrimes(pending, true);
-                showToast('Your report has been submitted and is pending admin review.', 'success');
-            }).catch(function() {});
-    }
-
-    function renderStats(crimes) {
-        var counts = {};
-        crimes.forEach(function(c) {
-            counts[c.crime_type] = (counts[c.crime_type] || 0) + 1;
-        });
-        var statsEl = document.getElementById('map-stats');
-        statsEl.innerHTML =
-            '<div class="map-stat"><div class="val">' + crimes.length + '</div><div class="lbl">Verified Reports</div></div>'
-            + '<div class="map-stat"><div class="val">' + (counts['harassment'] || 0) + '</div><div class="lbl">Harassment</div></div>'
-            + '<div class="map-stat"><div class="val">' + (counts['assault'] || 0) + '</div><div class="lbl">Assault</div></div>'
-            + '<div class="map-stat"><div class="val">' + (counts['theft'] || 0) + '</div><div class="lbl">Theft</div></div>'
-            + '<div class="map-stat"><div class="val">' + (counts['stalking'] || 0) + '</div><div class="lbl">Stalking</div></div>';
-    }
-});
-</script>
+<script src="{{ url_for('static', filename='js/map.js') }}"></script>
 {% endblock %}

@@ -57,13 +57,13 @@ function chatbot() {
   addUserMessage(input);
 
   // LOCATION FEATURES
-  if(input.includes("police")) {
+  if(input.includes("Police")) {
     getLocation("police station");
     inputField.value = "";
     return;
   }
 
-  if(input.includes("hospital")) {
+  if(input.includes("Hospital")) {
     getLocation("hospital");
     inputField.value = "";
     return;
@@ -71,10 +71,10 @@ function chatbot() {
 
   let response = "";
 
-  if(input.includes("follow")) {
+  if(input.includes("Follow")) {
     response = "Go to a crowded place immediately. Call someone and avoid isolated areas.";
   }
-  else if(input.includes("self defense") || input.includes("defend")) {
+  else if(input.includes("Self Defense") || input.includes("Defend")) {
     response = "Target eyes, nose, and knees. Focus on escaping safely.";
   }
   else if(input.includes("attack")) {
@@ -138,4 +138,48 @@ function getLocation(place) {
 
   });
 
+}
+function faqMsg(question){
+
+    const messages = document.getElementById("messages");
+
+    // show user question
+    messages.innerHTML += `<div class="message user">${question}</div>`;
+
+    let answer = "";
+
+    if(question === "📞 What is the emergency number?"){
+        answer = "📞 Emergency numbers in India: Police 100, Ambulance 102, Women Helpline 1091.";
+    }
+
+    else if(question === "📍 How can I share my live location?"){
+        answer = "You can share your live location using Google Maps or WhatsApp Live Location to our friends and family.";
+    }
+
+    else if(question === "⚠️ What should I do if I feel unsafe?"){
+        answer = "First, move to a crowded place, call a trusted person, or contact the police immediately. Stay safe and be aware of your surroundings.";
+    }
+
+    else if(question === "🌙 What are some late night safety tips?"){
+        answer = "Avoid isolated areas, keep emergency contacts ready, and share your travel details before leaving.";
+    }
+
+    else if(question === "🚨 How can I report a crime?"){
+        answer = "You can report crimes at the nearest police station or through the National Cyber Crime portal or by the report crime in SafeHer platform.";
+    }
+
+    else if(question === "🚌 What are some safe travel tips?"){
+        answer = "Use trusted transport services and always share your ride details with someone.";
+    }
+
+    // bot reply
+    messages.innerHTML += `<div class="message bot">${answer}</div>`;
+
+    // scroll to latest message
+    messages.scrollTop = messages.scrollHeight;
+
+    // scroll page to chatbot
+    document.querySelector(".chat-container").scrollIntoView({
+        behavior: "smooth"
+    });
 }
