@@ -1,0 +1,348 @@
+{% extends 'base.html' %}
+{% block title %}Report Crime{% endblock %}
+
+{% block extra_css %}
+<style>
+    .report-page { max-width: 700px; margin: 0 auto; padding: 36px 20px 60px; }
+    .report-page h1 { margin-bottom: 4px; font-size: 1.8rem; font-weight: 800; }
+    .subtitle { color: #6b7280; margin-bottom: 24px; font-size: 0.95rem; }
+
+    .card { background: #fff; border-radius: 14px; padding: 28px; box-shadow: 0 2px 12px rgba(0,0,0,0.07); }
+
+    .form-group { margin-bottom: 18px; }
+    .form-group label { display: block; margin-bottom: 6px; font-weight: 500; color: #374151; font-size: 0.9rem; }
+    .form-group input,
+    .form-group select,
+    .form-group textarea {
+        width: 100%; padding: 10px 14px; border: 1.5px solid #d1d5db;
+        border-radius: 8px; font-size: 0.95rem; box-sizing: border-box;
+        font-family: inherit; transition: border-color 0.2s; background: #fff;
+    }
+    .form-group input:focus,
+    .form-group select:focus,
+    .form-group textarea:focus { outline: none; border-color: #7c3aed; }
+    .form-group textarea { min-height: 100px; resize: vertical; }
+
+    /* ── Location autocomplete ── */
+    .location-wrapper { position: relative; }
+    #location-dropdown {
+        position: absolute; top: 100%; left: 0; right: 0; z-index: 2000;
+        background: #fff; border: 1.5px solid #d1d5db; border-top: none;
+        border-radius: 0 0 8px 8px; max-height: 220px; overflow-y: auto;
+        display: none; box-shadow: 0 6px 16px rgba(0,0,0,0.12);
+    }
+    .location-dropdown-item {
+        padding: 10px 14px; cursor: pointer; font-size: 0.88rem;
+        color: #374151; border-bottom: 1px solid #f3f4f6;
+        display: flex; align-items: flex-start; gap: 8px;
+    }
+    .location-dropdown-item:last-child { border-bottom: none; }
+    .location-dropdown-item:hover { background: #f5f3ff; color: #6d28d9; }
+    .place-name { font-weight: 600; display: block; }
+    .place-full { color: #9ca3af; font-size: 0.78rem; display: block; }
+
+    /* ── Map container — MUST have explicit height for Leaflet ── */
+    #location-picker {
+        height: 320px;
+        width: 100%;
+        border-radius: 10px;
+        overflow: hidden;
+        border: 1.5px solid #d1d5db;
+        margin-top: 8px;
+        z-index: 1;
+        position: relative;
+    }
+    #location-picker.has-pin { border-color: #7c3aed; box-shadow: 0 0 0 3px #ede9fe; }
+
+    #pin-hint { font-size: 0.82rem; color: #9ca3af; margin-top: 8px; }
+    #pin-hint.pinned { color: #059669; font-weight: 600; }
+
+    /* ── Coordinates box ── */
+    #coords-display {
+        display: none;
+        margin-top: 10px;
+        background: #f5f3ff; border: 1px solid #c4b5fd;
+        border-radius: 8px; padding: 10px 16px;
+        font-size: 0.85rem; color: #5b21b6;
+        gap: 24px; align-items: center;
+    }
+    .coord-val {
+        font-family: monospace; background: #ede9fe;
+        padding: 2px 8px; border-radius: 4px; font-weight: 700;
+    }
+
+    /* ── File upload ── */
+    .file-upload-area {
+        border: 2px dashed #d1d5db; border-radius: 10px;
+        padding: 24px; text-align: center; cursor: pointer;
+        transition: border-color 0.2s, background 0.2s; position: relative;
+    }
+    .file-upload-area:hover { border-color: #7c3aed; background: #faf5ff; }
+    .file-upload-area.dragover { border-color: #7c3aed; background: #f5f3ff; }
+    .file-upload-area input[type="file"] {
+        position: absolute; inset: 0; opacity: 0; cursor: pointer; width: 100%; height: 100%;
+    }
+    .file-upload-icon { font-size: 2rem; margin-bottom: 6px; }
+    .file-upload-text { color: #6b7280; font-size: 0.88rem; line-height: 1.5; }
+    .file-upload-text strong { color: #7c3aed; }
+
+    .file-previews { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 12px; }
+    .file-preview-item {
+        position: relative; border-radius: 8px; overflow: hidden;
+        border: 1.5px solid #e5e7eb; background: #f9fafb;
+    }
+    .file-preview-item img { width: 80px; height: 80px; object-fit: cover; display: block; }
+    .audio-preview {
+        width: 160px; padding: 10px 12px; font-size: 0.78rem;
+        color: #6b7280; display: flex; align-items: center; gap: 6px;
+    }
+    .remove-file {
+        position: absolute; top: 3px; right: 3px;
+        background: rgba(0,0,0,0.6); color: #fff; border: none;
+        border-radius: 50%; width: 20px; height: 20px; font-size: 0.65rem;
+        cursor: pointer; display: flex; align-items: center; justify-content: center;
+    }
+
+    /* ── Submit button ── */
+    .btn-submit {
+        width: 100%; padding: 14px; background: #6d28d9; color: #fff;
+        border: none; border-radius: 8px; font-size: 1rem; font-weight: 700;
+        cursor: pointer; transition: background 0.2s; margin-top: 8px;
+    }
+    .btn-submit:hover { background: #5b21b6; }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="report-page">
+    <h1>Report an Incident 📋</h1>
+    <p class="subtitle">Your report helps make the community safer. All reports are reviewed before publishing.</p>
+
+    <div class="card">
+        <form method="POST" action="/crime/report" id="crimeForm" enctype="multipart/form-data">
+
+            <div class="form-group">
+                <label>Type of Incident <span style="color:#ef4444;">*</span></label>
+                <select name="crime_type" required>
+                    <option value="">Select type...</option>
+                    <option value="harassment">Harassment</option>
+                    <option value="assault">Assault</option>
+                    <option value="stalking">Stalking</option>
+                    <option value="theft">Theft / Snatching</option>
+                    <option value="domestic_violence">Domestic Violence</option>
+                    <option value="other">Other</option>
+                </select>
+            </div>
+
+            <div class="form-group">
+                <label>Severity Level <span style="color:#ef4444;">*</span></label>
+                <select name="severity" required>
+                    <option value="low">Low</option>
+                    <option value="medium" selected>Medium</option>
+                    <option value="high">High</option>
+                </select>
+            </div>
+
+            <div class="form-group">
+                <label>Description <span style="color:#ef4444;">*</span></label>
+                <textarea name="description" placeholder="Describe the incident in detail..." required></textarea>
+            </div>
+
+            <div class="form-group">
+                <label>Search Location</label>
+                <div class="location-wrapper">
+                    <input type="text" id="location_name" name="location_name"
+                           placeholder="Type a place name to search..." autocomplete="off">
+                    <div id="location-dropdown"></div>
+                </div>
+            </div>
+
+            <div class="form-group">
+                <label>Pin on Map <span style="color:#ef4444;">*</span></label>
+                <div id="location-picker"></div>
+                <p id="pin-hint">📍 Click anywhere on the map to drop a pin on the incident location</p>
+                <div id="coords-display">
+                    📌 Latitude: <span class="coord-val" id="lat-val">—</span>
+                    Longitude: <span class="coord-val" id="lng-val">—</span>
+                </div>
+                <input type="hidden" id="latitude"  name="latitude">
+                <input type="hidden" id="longitude" name="longitude">
+            </div>
+
+            <div class="form-group">
+                <label>Attach Evidence <span style="color:#9ca3af; font-weight:400;">(optional — images or audio)</span></label>
+                <div class="file-upload-area" id="uploadArea">
+                    <input type="file" id="fileInput" name="files" multiple
+                           accept="image/*,audio/*" onchange="handleFiles(this.files)">
+                    <div class="file-upload-icon">📎</div>
+                    <div class="file-upload-text">
+                        <strong>Click to upload</strong> or drag & drop<br>
+                        Images (JPG, PNG, GIF) or Audio (MP3, WAV, M4A)
+                    </div>
+                </div>
+                <div class="file-previews" id="filePreviews"></div>
+            </div>
+
+            <button type="submit" class="btn-submit" id="submitBtn">Submit Report</button>
+        </form>
+    </div>
+</div>
+
+<script>
+// Wait for DOM + Leaflet to be fully ready
+document.addEventListener('DOMContentLoaded', function () {
+
+    // ── MAP INIT ──────────────────────────────────────────
+    var map = L.map('location-picker', { zoomControl: true }).setView([17.385, 78.486], 13);
+
+    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+        attribution: '© <a href="https://www.openstreetmap.org/">OpenStreetMap</a> contributors',
+        maxZoom: 19
+    }).addTo(map);
+
+    // Force Leaflet to recalculate size after render
+    setTimeout(function () { map.invalidateSize(); }, 200);
+
+    var marker = null;
+
+    function setPin(latlng, label) {
+        if (marker) map.removeLayer(marker);
+        marker = L.marker([latlng.lat, latlng.lng]).addTo(map);
+        if (label) marker.bindPopup('<b>' + label + '</b>').openPopup();
+
+        document.getElementById('latitude').value  = latlng.lat;
+        document.getElementById('longitude').value = latlng.lng;
+        document.getElementById('lat-val').textContent = parseFloat(latlng.lat).toFixed(6);
+        document.getElementById('lng-val').textContent = parseFloat(latlng.lng).toFixed(6);
+        document.getElementById('coords-display').style.display = 'flex';
+        document.getElementById('location-picker').classList.add('has-pin');
+        var hint = document.getElementById('pin-hint');
+        hint.textContent = '✅ Location pinned! You can drag the pin or click elsewhere to repin.';
+        hint.className = 'pinned';
+    }
+
+    // Click map to drop pin
+    map.on('click', function (e) {
+        setPin(e.latlng, null);
+        // Reverse geocode to auto-fill location name if blank
+        var locInput = document.getElementById('location_name');
+        fetch('https://nominatim.openstreetmap.org/reverse?lat=' + e.latlng.lat + '&lon=' + e.latlng.lng + '&format=json')
+            .then(function(r) { return r.json(); })
+            .then(function(data) {
+                if (!locInput.value && data.display_name) {
+                    locInput.value = data.display_name.split(',').slice(0, 3).join(',').trim();
+                }
+            }).catch(function() {});
+    });
+
+    // Auto-center on user's GPS location
+    if (navigator.geolocation) {
+        navigator.geolocation.getCurrentPosition(function (pos) {
+            map.setView([pos.coords.latitude, pos.coords.longitude], 15);
+        }, function() {
+            // Silently fail — default Hyderabad view stays
+        });
+    }
+
+    // ── LOCATION AUTOCOMPLETE ─────────────────────────────
+    var searchTimeout = null;
+    var locInput   = document.getElementById('location_name');
+    var dropdown   = document.getElementById('location-dropdown');
+
+    locInput.addEventListener('input', function () {
+        clearTimeout(searchTimeout);
+        var q = this.value.trim();
+        if (q.length < 3) { dropdown.style.display = 'none'; return; }
+
+        searchTimeout = setTimeout(function () {
+            fetch('https://nominatim.openstreetmap.org/search?q=' + encodeURIComponent(q) + '&format=json&limit=6&addressdetails=1')
+                .then(function(r) { return r.json(); })
+                .then(function(results) {
+                    dropdown.innerHTML = '';
+                    if (!results.length) { dropdown.style.display = 'none'; return; }
+                    results.forEach(function (place) {
+                        var parts = place.display_name.split(',');
+                        var name  = parts[0].trim();
+                        var full  = parts.slice(1, 4).join(',').trim();
+                        var div   = document.createElement('div');
+                        div.className = 'location-dropdown-item';
+                        div.innerHTML  = '<span style="font-size:1rem;flex-shrink:0;">📍</span>'
+                            + '<span><span class="place-name">' + name + '</span>'
+                            + '<span class="place-full">' + full + '</span></span>';
+                        div.addEventListener('click', function () {
+                            locInput.value = place.display_name.split(',').slice(0, 3).join(',').trim();
+                            dropdown.style.display = 'none';
+                            var ll = { lat: parseFloat(place.lat), lng: parseFloat(place.lon) };
+                            map.setView([ll.lat, ll.lng], 16);
+                            setPin(ll, locInput.value);
+                        });
+                        dropdown.appendChild(div);
+                    });
+                    dropdown.style.display = 'block';
+                }).catch(function() { dropdown.style.display = 'none'; });
+        }, 400);
+    });
+
+    document.addEventListener('click', function (e) {
+        if (!locInput.contains(e.target) && !dropdown.contains(e.target)) {
+            dropdown.style.display = 'none';
+        }
+    });
+
+    // ── FILE UPLOAD ───────────────────────────────────────
+    var uploadArea  = document.getElementById('uploadArea');
+    var filePreviews = document.getElementById('filePreviews');
+
+    uploadArea.addEventListener('dragover', function (e) {
+        e.preventDefault(); uploadArea.classList.add('dragover');
+    });
+    uploadArea.addEventListener('dragleave', function () {
+        uploadArea.classList.remove('dragover');
+    });
+    uploadArea.addEventListener('drop', function (e) {
+        e.preventDefault();
+        uploadArea.classList.remove('dragover');
+        handleFiles(e.dataTransfer.files);
+    });
+
+    window.handleFiles = function(files) {
+        Array.from(files).forEach(function (file) {
+            if (!file.type.startsWith('image/') && !file.type.startsWith('audio/')) return;
+            var item = document.createElement('div');
+            item.className = 'file-preview-item';
+            if (file.type.startsWith('image/')) {
+                var reader = new FileReader();
+                reader.onload = function (e) {
+                    item.innerHTML = '<img src="' + e.target.result + '" alt="' + file.name + '">'
+                        + '<button type="button" class="remove-file" onclick="this.closest(\'.file-preview-item\').remove()">✕</button>';
+                };
+                reader.readAsDataURL(file);
+            } else {
+                item.innerHTML = '<div class="audio-preview">🎵 <span>'
+                    + (file.name.length > 18 ? file.name.slice(0, 18) + '…' : file.name)
+                    + '</span></div>'
+                    + '<button type="button" class="remove-file" onclick="this.closest(\'.file-preview-item\').remove()">✕</button>';
+            }
+            filePreviews.appendChild(item);
+        });
+    };
+
+    // ── FORM SUBMIT VALIDATION ────────────────────────────
+    document.getElementById('crimeForm').addEventListener('submit', function (e) {
+        if (!document.getElementById('latitude').value) {
+            e.preventDefault();
+            showToast('Please click on the map to pin the incident location.', 'error');
+            document.getElementById('location-picker').scrollIntoView({ behavior: 'smooth', block: 'center' });
+            return;
+        }
+        // Set location_name fallback if still empty
+        var locName = document.getElementById('location_name');
+        if (!locName.value.trim()) {
+            locName.value = document.getElementById('lat-val').textContent
+                + ', ' + document.getElementById('lng-val').textContent;
+        }
+    });
+
+});
+</script>
+{% endblock %}

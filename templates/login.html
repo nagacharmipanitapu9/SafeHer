@@ -1,0 +1,129 @@
+{% extends 'base.html' %}
+{% block title %}Login{% endblock %}
+
+{% block extra_css %}
+<style>
+    .auth-page {
+        display: flex; justify-content: center;
+        padding: 40px 20px; min-height: calc(100vh - 120px);
+        align-items: center;
+    }
+    .auth-card {
+        background: #fff; border-radius: 16px; padding: 36px;
+        width: 100%; max-width: 440px;
+        box-shadow: 0 4px 24px rgba(0,0,0,0.08);
+    }
+    .auth-card h2 { margin: 0 0 6px; color: #1f2937; font-size: 1.6rem; }
+    .subtitle { color: #6b7280; margin-bottom: 24px; font-size: 0.95rem; }
+
+    .form-group { margin-bottom: 16px; }
+    .form-group label {
+        display: block; margin-bottom: 6px;
+        font-weight: 500; color: #374151; font-size: 0.9rem;
+    }
+    .form-group input {
+        width: 100%; padding: 10px 14px;
+        border: 1.5px solid #d1d5db; border-radius: 8px;
+        font-size: 0.95rem; box-sizing: border-box;
+        transition: border-color 0.2s; font-family: inherit;
+    }
+    .form-group input:focus { outline: none; border-color: #7c3aed; }
+
+    .btn-submit {
+        width: 100%; padding: 12px; background: #6d28d9; color: #fff;
+        border: none; border-radius: 8px; font-size: 1rem;
+        font-weight: 600; cursor: pointer; transition: background 0.2s;
+        margin-top: 4px;
+    }
+    .btn-submit:hover { background: #5b21b6; }
+
+    .auth-footer {
+        text-align: center; margin-top: 16px;
+        color: #6b7280; font-size: 0.9rem;
+    }
+    .auth-footer a { color: #6d28d9; font-weight: 600; text-decoration: none; }
+    .auth-footer a:hover { text-decoration: underline; }
+
+    .demo-creds {
+        margin-top: 24px; border-top: 1.5px solid #f3f4f6; padding-top: 20px;
+        display: flex; flex-direction: column; gap: 10px;
+    }
+    .demo-creds-title {
+        font-size: 0.78rem; font-weight: 600; color: #9ca3af;
+        text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 4px;
+    }
+    .cred-item {
+        background: #f5f3ff; border: 1.5px dashed #c4b5fd;
+        border-radius: 8px; padding: 11px 14px;
+        font-size: 0.84rem; color: #5b21b6;
+    }
+    .cred-item strong {
+        display: block; margin-bottom: 5px;
+        font-size: 0.82rem; color: #7c3aed;
+    }
+    .cred-item code {
+        background: #ede9fe; padding: 2px 7px;
+        border-radius: 4px; font-size: 0.82rem;
+        cursor: pointer; transition: background 0.15s;
+        user-select: none;
+    }
+    .cred-item code:hover { background: #ddd6fe; }
+    .click-hint {
+        font-size: 0.75rem; color: #a78bfa; margin-top: 5px; display: block;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="auth-page">
+    <div class="auth-card">
+        <h2>Welcome!! 👋</h2>
+        <p class="subtitle">Login to access your safety dashboard</p>
+
+        <form method="POST" action="/auth/login">
+            <div class="form-group">
+                <label for="email">Email Address</label>
+                <input type="email" id="email" name="email"
+                       placeholder="you@example.com" required>
+            </div>
+            <div class="form-group">
+                <label for="password">Password</label>
+                <input type="password" id="password" name="password"
+                       placeholder="Enter your password" required minlength="6">
+            </div>
+            <button type="submit" class="btn-submit">Login</button>
+        </form>
+
+        <div class="auth-footer">
+            Don't have an account? <a href="/auth/register">Register here</a>
+        </div>
+
+        <!-- Demo credentials -->
+        <div class="demo-creds">
+            <div class="demo-creds-title">🔑 Demo Credentials (click to fill)</div>
+
+            <div class="cred-item">
+                <strong>👤 User Account</strong>
+                Email: <code onclick="fill('user@safeher.com', 'user123')">user@safeher.com</code>
+                &nbsp; Password: <code onclick="fill('user@safeher.com', 'user123')">user123</code>
+                <span class="click-hint">↑ Click any value to auto-fill the form</span>
+            </div>
+
+            <div class="cred-item">
+                <strong>🔒 Admin Account</strong>
+                Email: <code onclick="fill('admin@safeher.com', 'admin123')">admin@safeher.com</code>
+                &nbsp; Password: <code onclick="fill('admin@safeher.com', 'admin123')">admin123</code>
+                <span class="click-hint">↑ Click any value to auto-fill the form</span>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    function fill(email, password) {
+        document.getElementById('email').value    = email;
+        document.getElementById('password').value = password;
+        showToast('Credentials filled! Click Login to continue.', 'info');
+    }
+</script>
+{% endblock %}

@@ -1,0 +1,32 @@
+{% extends 'base.html' %}
+{% block title %}Admin Dashboard{% endblock %}
+
+{% block content %}
+<div class="admin-page">
+    <h1>Admin Dashboard 🔒</h1>
+    <p style="color:var(--text-light);margin-bottom:8px;">Monitor and manage SafeHer platform</p>
+
+    <div class="admin-stats">
+        <div class="card stat-card">
+            <div class="value">{{ stats.total_crimes }}</div>
+            <div class="label">Total Reports</div>
+        </div>
+        <div class="card stat-card">
+            <div class="value">{{ stats.pending_crimes }}</div>
+            <div class="label">Pending Review</div>
+        </div>
+        <div class="card stat-card">
+            <div class="value">{{ stats.total_sos }}</div>
+            <div class="label">SOS Alerts</div>
+        </div>
+        <div class="card stat-card">
+            <div class="value">{{ stats.total_users }}</div>
+            <div class="label">Registered Users</div>
+        </div>
+    </div>
+
+    <div style="display:flex;gap:12px;margin-bottom:24px;">
+        <a href="/admin/crimes" class="btn btn-primary">Review Crime Reports</a>
+    </div>
+</div>
+{% endblock %}

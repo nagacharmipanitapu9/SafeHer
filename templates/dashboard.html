@@ -1,0 +1,149 @@
+{% extends 'base.html' %}
+{% block title %}Dashboard{% endblock %}
+
+{% block extra_css %}
+<style>
+    .dashboard {
+        max-width: 1000px;
+        margin: 0 auto;
+        padding: 36px 20px;
+    }
+    .dashboard h1 {
+        font-size: 1.8rem; font-weight: 800; color: #1f2937; margin-bottom: 6px;
+    }
+    .welcome-text {
+        color: #6b7280; margin-bottom: 32px; font-size: 0.95rem;
+    }
+
+    .dashboard-grid {
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        gap: 18px;
+    }
+    @media(max-width: 700px) {
+        .dashboard-grid { grid-template-columns: repeat(2, 1fr); }
+    }
+    @media(max-width: 480px) {
+        .dashboard-grid { grid-template-columns: 1fr; }
+    }
+
+    /* Center last row when it has fewer cards */
+    .dashboard-grid-bottom {
+        display: flex;
+        justify-content: center;
+        gap: 18px;
+        margin-top: 18px;
+        flex-wrap: wrap;
+    }
+    .dashboard-grid-bottom .dash-card {
+        width: calc(33.333% - 9px);
+        max-width: 300px;
+    }
+    @media(max-width: 700px) {
+        .dashboard-grid-bottom .dash-card { width: calc(50% - 9px); }
+    }
+    @media(max-width: 480px) {
+        .dashboard-grid-bottom .dash-card { width: 100%; max-width: 100%; }
+    }
+
+    .dash-card {
+        background: #fff;
+        border-radius: 16px;
+        padding: 24px 20px;
+        box-shadow: 0 2px 12px rgba(0,0,0,0.07);
+        display: flex;
+        align-items: center;
+        gap: 16px;
+        text-decoration: none;
+        color: #1f2937 !important;
+        transition: transform 0.2s, box-shadow 0.2s;
+        border: 2px solid transparent;
+    }
+    .dash-card:hover {
+        transform: translateY(-4px);
+        box-shadow: 0 8px 24px rgba(109,40,217,0.13);
+        border-color: #ede9fe;
+    }
+    .dash-card .icon {
+        font-size: 2.2rem;
+        flex-shrink: 0;
+        width: 52px; height: 52px;
+        background: #f5f3ff;
+        border-radius: 14px;
+        display: flex; align-items: center; justify-content: center;
+    }
+    .dash-card h3 {
+        font-size: 0.98rem; font-weight: 700;
+        color: #1f2937; margin-bottom: 3px;
+    }
+    .dash-card p {
+        font-size: 0.82rem; color: #6b7280; margin: 0;
+    }
+
+    /* SOS card special style */
+    .dash-card.sos-card {
+        background: linear-gradient(135deg, #fef2f2, #fee2e2);
+        border-color: #fecaca;
+    }
+    .dash-card.sos-card .icon { background: #fee2e2; }
+    .dash-card.sos-card h3 { color: #991b1b; }
+    .dash-card.sos-card:hover { border-color: #ef4444; }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="dashboard">
+    <h1>Hello, {{ session.get('user_name', 'User') }}! 🌸</h1>
+    <p class="welcome-text">Your safety dashboard — quick access to all features</p>
+
+    <!-- First row: 3 cards -->
+    <div class="dashboard-grid">
+        <a href="/crime/report" class="dash-card">
+            <div class="icon">📋</div>
+            <div>
+                <h3>Report a Crime</h3>
+                <p>File an incident report</p>
+            </div>
+        </a>
+        <a href="/sos" class="dash-card sos-card">
+            <div class="icon">🚨</div>
+            <div>
+                <h3>SOS Alert</h3>
+                <p>Send emergency alert</p>
+            </div>
+        </a>
+        <a href="/crime/map" class="dash-card">
+            <div class="icon">🗺️</div>
+            <div>
+                <h3>Crime Map</h3>
+                <p>View incidents nearby</p>
+            </div>
+        </a>
+    </div>
+
+    <!-- Second row: 3 cards centered -->
+    <div class="dashboard-grid-bottom">
+        <a href="/chatbot" class="dash-card">
+            <div class="icon">⚖️</div>
+            <div>
+                <h3>Legal Chatbot</h3>
+                <p>Get safety guidance</p>
+            </div>
+        </a>
+        <a href="/shuttle" class="dash-card">
+            <div class="icon">🚌</div>
+            <div>
+                <h3>SheShuttle</h3>
+                <p>Find safe transport</p>
+            </div>
+        </a>
+        <a href="/auth/profile" class="dash-card">
+            <div class="icon">👤</div>
+            <div>
+                <h3>Profile</h3>
+                <p>Manage your account</p>
+            </div>
+        </a>
+    </div>
+</div>
+{% endblock %}

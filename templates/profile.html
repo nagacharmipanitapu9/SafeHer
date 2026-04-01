@@ -1,0 +1,279 @@
+{% extends 'base.html' %}
+{% block title %}My Profile{% endblock %}
+
+{% block extra_css %}
+<style>
+    .profile-page { max-width: 640px; margin: 0 auto; padding: 36px 20px; }
+    .profile-page h1 { margin-bottom: 4px; font-size: 1.8rem; font-weight: 800; }
+    .subtitle { color: #6b7280; margin-bottom: 28px; font-size: 0.95rem; }
+
+    .card {
+        background: #fff; border-radius: 14px; padding: 28px;
+        box-shadow: 0 2px 12px rgba(0,0,0,0.07); margin-bottom: 20px;
+    }
+    .card h3 {
+        margin: 0 0 18px; color: #374151; font-size: 1.05rem; font-weight: 700;
+        border-bottom: 1.5px solid #f3f4f6; padding-bottom: 10px;
+    }
+
+    .form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+    @media(max-width: 520px) { .form-row { grid-template-columns: 1fr; } }
+
+    .form-group { margin-bottom: 16px; }
+    .form-group label {
+        display: block; margin-bottom: 6px;
+        font-weight: 500; color: #374151; font-size: 0.9rem;
+    }
+    .form-group input {
+        width: 100%; padding: 10px 14px;
+        border: 1.5px solid #d1d5db; border-radius: 8px;
+        font-size: 0.95rem; box-sizing: border-box;
+        font-family: inherit; transition: border-color 0.2s;
+    }
+    .form-group input:focus { outline: none; border-color: #7c3aed; }
+    .form-group input:read-only {
+        background: #f9fafb; color: #9ca3af; cursor: not-allowed;
+    }
+
+    /* Phone input with counter */
+    .phone-wrapper { position: relative; }
+    .phone-counter {
+        position: absolute; right: 12px; top: 50%;
+        transform: translateY(-50%);
+        font-size: 0.75rem; color: #9ca3af; pointer-events: none;
+    }
+    .phone-counter.full { color: #10b981; font-weight: 600; }
+
+    .field-hint { font-size: 0.78rem; color: #9ca3af; margin-top: 4px; }
+    .field-error {
+        font-size: 0.78rem; color: #ef4444;
+        margin-top: 4px; display: none;
+    }
+    .form-group input.invalid { border-color: #ef4444; }
+
+    /* Avatar */
+    .avatar-circle {
+        width: 72px; height: 72px; border-radius: 50%;
+        background: linear-gradient(135deg, #7c3aed, #a78bfa);
+        display: flex; align-items: center; justify-content: center;
+        font-size: 2rem; color: #fff; font-weight: 700; flex-shrink: 0;
+    }
+    .badge-role {
+        display: inline-block; background: #ede9fe; color: #6d28d9;
+        font-size: 0.78rem; font-weight: 600; padding: 2px 10px;
+        border-radius: 20px; margin-top: 6px;
+    }
+
+    /* Buttons */
+    .btn-row { display: flex; gap: 12px; align-items: center; flex-wrap: wrap; }
+    .btn-save {
+        padding: 11px 28px; background: #6d28d9; color: #fff;
+        border: none; border-radius: 8px; font-size: 0.95rem;
+        font-weight: 600; cursor: pointer; transition: background 0.2s;
+    }
+    .btn-save:hover { background: #5b21b6; }
+    .btn-cancel {
+        padding: 11px 20px; background: transparent; color: #6b7280;
+        border: 1.5px solid #d1d5db; border-radius: 8px; font-size: 0.95rem;
+        font-weight: 500; cursor: pointer; transition: all 0.2s;
+        text-decoration: none; display: inline-block;
+    }
+    .btn-cancel:hover { border-color: #9ca3af; color: #374151; }
+
+    /* Password toggle */
+    .pw-wrapper { position: relative; }
+    .pw-toggle {
+        position: absolute; right: 12px; top: 50%;
+        transform: translateY(-50%); background: none;
+        border: none; cursor: pointer; font-size: 1rem; color: #9ca3af;
+        padding: 0; line-height: 1;
+    }
+    .pw-wrapper input { padding-right: 38px; }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="profile-page">
+    <h1>My Profile 👤</h1>
+    <p class="subtitle">Manage your personal information and safety settings</p>
+
+    <!-- Avatar card -->
+    <div class="card" style="display:flex;align-items:center;gap:20px;flex-wrap:wrap;">
+        <div class="avatar-circle">{{ user.name[0].upper() }}</div>
+        <div>
+            <div style="font-size:1.2rem;font-weight:700;color:#1f2937;">{{ user.name }}</div>
+            <div style="color:#6b7280;font-size:0.9rem;margin-top:2px;">{{ user.email }}</div>
+            <div style="color:#6b7280;font-size:0.9rem;margin-top:2px;">
+                📞 {{ user.phone or 'Not set' }}
+            </div>
+            <div class="badge-role">{{ user.role | capitalize }}</div>
+        </div>
+    </div>
+
+    <form method="POST" action="/auth/profile" id="profileForm" novalidate>
+
+        <!-- Personal Info -->
+        <div class="card">
+            <h3>Personal Information</h3>
+            <div class="form-row">
+                <div class="form-group">
+                    <label>Full Name <span style="color:#ef4444;">*</span></label>
+                    <input type="text" name="name" id="fname"
+                           value="{{ user.name }}" required minlength="2">
+                    <div class="field-error" id="name-error">Please enter your full name.</div>
+                </div>
+                <div class="form-group">
+                    <label>Phone Number</label>
+                    <div class="phone-wrapper">
+                        <input type="tel" name="phone" id="phone"
+                               value="{{ user.phone or '' }}"
+                               placeholder="9876543210"
+                               maxlength="10" inputmode="numeric">
+                        <span class="phone-counter" id="phone-counter">
+                            {{ (user.phone or '')|length }}/10
+                        </span>
+                    </div>
+                    <div class="field-error" id="phone-error">Must be exactly 10 digits.</div>
+                    <div class="field-hint">Enter 10-digit number without country code</div>
+                </div>
+            </div>
+            <div class="form-group">
+                <label>Email Address</label>
+                <input type="email" value="{{ user.email }}" read-only tabindex="-1">
+                <div class="field-hint">Email cannot be changed</div>
+            </div>
+            <div class="form-group">
+                <label>Address</label>
+                <input type="text" name="address"
+                       value="{{ user.address or '' }}"
+                       placeholder="Your home / work address">
+            </div>
+        </div>
+
+        <!-- Emergency Contact -->
+        <div class="card">
+            <h3>🆘 Emergency Contact</h3>
+            <p style="color:#6b7280;font-size:0.88rem;margin-top:-10px;margin-bottom:16px;">
+                This person will be notified when you trigger an SOS alert.
+            </p>
+            <div class="form-row">
+                <div class="form-group">
+                    <label>Contact Name</label>
+                    <input type="text" name="emergency_contact_name"
+                           value="{{ user.emergency_contact_name or '' }}"
+                           placeholder="e.g. Mom, Sister">
+                </div>
+                <div class="form-group">
+                    <label>Contact Phone</label>
+                    <div class="phone-wrapper">
+                        <input type="tel" name="emergency_contact_phone" id="ec-phone"
+                               value="{{ user.emergency_contact_phone or '' }}"
+                               placeholder="9876543210"
+                               maxlength="10" inputmode="numeric">
+                        <span class="phone-counter" id="ec-counter">
+                            {{ (user.emergency_contact_phone or '')|length }}/10
+                        </span>
+                    </div>
+                    <div class="field-error" id="ec-phone-error">Must be exactly 10 digits.</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Change Password -->
+        <div class="card">
+            <h3>🔒 Change Password</h3>
+            <p style="color:#6b7280;font-size:0.88rem;margin-top:-10px;margin-bottom:16px;">
+                Leave blank to keep your current password.
+            </p>
+            <div class="form-group">
+                <label>New Password</label>
+                <div class="pw-wrapper">
+                    <input type="password" name="new_password" id="new-password"
+                           placeholder="Min 6 characters" minlength="6">
+                    <button type="button" class="pw-toggle" onclick="togglePw()">👁️</button>
+                </div>
+                <div class="field-error" id="pw-error">Password must be at least 6 characters.</div>
+            </div>
+        </div>
+
+        <div class="btn-row">
+            <button type="submit" class="btn-save">💾 Save Changes</button>
+            <a href="/dashboard" class="btn-cancel">Cancel</a>
+        </div>
+    </form>
+</div>
+
+<script>
+    // ── Phone input — digits only, max 10 ──────────────────
+    function setupPhoneInput(inputId, counterId, errorId) {
+        var input   = document.getElementById(inputId);
+        var counter = document.getElementById(counterId);
+        if (!input) return;
+
+        function update() {
+            input.value = input.value.replace(/\D/g, '').slice(0, 10);
+            var len = input.value.length;
+            counter.textContent = len + '/10';
+            counter.className   = 'phone-counter' + (len === 10 ? ' full' : '');
+        }
+
+        input.addEventListener('input', update);
+        input.addEventListener('keydown', function(e) {
+            var allowed = ['Backspace','Delete','Tab','ArrowLeft','ArrowRight'];
+            if (!allowed.includes(e.key) && !/^\d$/.test(e.key)) e.preventDefault();
+        });
+
+        // Init counter on page load
+        update();
+    }
+
+    setupPhoneInput('phone',    'phone-counter',  'phone-error');
+    setupPhoneInput('ec-phone', 'ec-counter',     'ec-phone-error');
+
+    // ── Password toggle ────────────────────────────────────
+    function togglePw() {
+        var input = document.getElementById('new-password');
+        input.type = input.type === 'password' ? 'text' : 'password';
+    }
+
+    // ── Form validation ────────────────────────────────────
+    document.getElementById('profileForm').addEventListener('submit', function(e) {
+        var valid = true;
+
+        function showErr(errId, inputEl) {
+            document.getElementById(errId).style.display = 'block';
+            if (inputEl) inputEl.classList.add('invalid');
+            valid = false;
+        }
+        function clearErr(errId, inputEl) {
+            document.getElementById(errId).style.display = 'none';
+            if (inputEl) inputEl.classList.remove('invalid');
+        }
+
+        // Name required
+        var nameEl = document.getElementById('fname');
+        if (nameEl.value.trim().length < 2) showErr('name-error', nameEl);
+        else clearErr('name-error', nameEl);
+
+        // Phone — if filled must be 10 digits
+        var phoneEl = document.getElementById('phone');
+        if (phoneEl.value.length > 0 && phoneEl.value.length !== 10)
+            showErr('phone-error', phoneEl);
+        else clearErr('phone-error', phoneEl);
+
+        // EC phone — if filled must be 10 digits
+        var ecEl = document.getElementById('ec-phone');
+        if (ecEl.value.length > 0 && ecEl.value.length !== 10)
+            showErr('ec-phone-error', ecEl);
+        else clearErr('ec-phone-error', ecEl);
+
+        // Password — if filled must be >= 6
+        var pwEl = document.getElementById('new-password');
+        if (pwEl.value.length > 0 && pwEl.value.length < 6)
+            showErr('pw-error', pwEl);
+        else clearErr('pw-error', pwEl);
+
+        if (!valid) e.preventDefault();
+    });
+</script>
+{% endblock %}

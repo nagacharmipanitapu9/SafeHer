@@ -1,0 +1,198 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SafeHer - {% block title %}Women Safety Platform{% endblock %}</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+    <style>
+        *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+        body { font-family: 'Segoe UI', system-ui, sans-serif; background: #f9fafb; color: #1f2937; min-height: 100vh; }
+
+        /* ── NAVBAR ── */
+        .navbar {
+            background: #ffffff;
+            padding: 0 40px;
+            height: 64px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            box-shadow: 0 1px 4px rgba(0,0,0,0.08);
+            position: sticky;
+            top: 0;
+            z-index: 1000;
+        }
+        .navbar .logo {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            color: #6d28d9 !important;
+            font-size: 1.25rem;
+            font-weight: 800;
+            text-decoration: none;
+        }
+        .navbar .logo svg {
+            width: 22px; height: 22px;
+            stroke: #6d28d9; fill: none; stroke-width: 2;
+        }
+        .navbar .nav-links {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        .navbar .nav-links a {
+            color: #374151 !important;
+            text-decoration: none;
+            padding: 7px 16px;
+            border-radius: 8px;
+            font-size: 0.92rem;
+            font-weight: 500;
+            transition: background 0.15s, color 0.15s;
+        }
+        .navbar .nav-links a:hover { background: #f3f4f6; color: #6d28d9 !important; }
+
+        .navbar .nav-links .btn-register {
+            background: transparent;
+            color: #6d28d9 !important;
+            border: 2px solid #6d28d9;
+            border-radius: 24px;
+            padding: 7px 20px;
+            font-weight: 600;
+        }
+        .navbar .nav-links .btn-register:hover { background: #ede9fe; }
+
+        .navbar .nav-links .btn-login {
+            background: #6d28d9;
+            color: #ffffff !important;
+            border-radius: 24px;
+            padding: 7px 20px;
+            font-weight: 700;
+        }
+        .navbar .nav-links .btn-login:hover { background: #5b21b6; }
+
+        /* Admin nav links */
+        .navbar .nav-links .btn-features {
+            color: #374151 !important;
+            font-weight: 500;
+            padding: 7px 16px;
+            border-radius: 8px;
+            background: transparent;
+            transition: background 0.15s;
+        }
+        .navbar .nav-links .btn-features:hover {
+            background: #f3f4f6;
+            color: #6d28d9 !important;
+        }
+
+        /* ── TOAST ── */
+        #toast-container {
+            position: fixed; top: 74px; right: 20px; z-index: 9999;
+            display: flex; flex-direction: column; gap: 10px;
+            max-width: 360px; pointer-events: none;
+        }
+        .toast {
+            padding: 13px 16px; border-radius: 10px; font-size: 0.88rem;
+            font-weight: 500; box-shadow: 0 4px 16px rgba(0,0,0,0.12);
+            animation: slideIn 0.3s ease; display: flex;
+            align-items: flex-start; gap: 8px; line-height: 1.4;
+            pointer-events: all;
+        }
+        .toast.success { background:#d1fae5; color:#065f46; border-left:4px solid #10b981; }
+        .toast.error   { background:#fee2e2; color:#991b1b; border-left:4px solid #ef4444; }
+        .toast.info    { background:#dbeafe; color:#1e40af; border-left:4px solid #3b82f6; }
+        @keyframes slideIn { from{transform:translateX(110%);opacity:0} to{transform:translateX(0);opacity:1} }
+        @keyframes fadeOut { to{opacity:0;transform:translateX(60px)} }
+
+        /* ── FOOTER ── */
+        .footer {
+            background: linear-gradient(90deg, #6d28d9, #a855f7);
+            color: #f3e8ff; text-align: center;
+            padding: 16px 20px; font-size: 0.85rem;
+        }
+
+        main { min-height: calc(100vh - 64px - 56px); }
+    </style>
+    {% block extra_css %}{% endblock %}
+</head>
+<body>
+
+<nav class="navbar">
+    <a href="{{ '/dashboard' if session.get('user_id') and session.get('role') != 'admin' else '/admin/dashboard' if session.get('role') == 'admin' else '/' }}" class="logo">
+        <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+            <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>
+        </svg>
+        SafeHer
+    </a>
+
+    <div class="nav-links">
+        {% if session.get('user_id') %}
+            {% if session.get('role') == 'admin' %}
+                <a href="/admin/dashboard" class="admin-link">📊 Dashboard</a>
+                <a href="/admin/crimes" class="admin-link">📋 Review Crimes</a>
+                <a href="/auth/logout" class="btn-login">Logout</a>
+            {% else %}
+                <a href="/dashboard">Dashboard</a>
+                <a href="/auth/logout" class="btn-login">Logout</a>
+            {% endif %}
+        {% else %}
+            <a href="/#features" class="btn-features" onclick="scrollToFeatures(event)">Features</a>
+            <a href="/auth/login"    class="btn-register">Login</a>
+            <a href="/auth/register" class="btn-login">Register</a>
+        {% endif %}
+    </div>
+</nav>
+
+<div id="toast-container">
+    {% with messages = get_flashed_messages(with_categories=true) %}
+        {% for category, message in messages %}
+            <div class="toast {{ category }}">
+                {% if category == 'success' %}✅{% elif category == 'error' %}❌{% else %}ℹ️{% endif %}
+                <span>{{ message }}</span>
+            </div>
+        {% endfor %}
+    {% endwith %}
+</div>
+
+<main>{% block content %}{% endblock %}</main>
+
+<footer class="footer">
+    <p>© 2026 SafeHer. Empowering women's safety through technology.</p>
+</footer>
+
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<script src="{{ url_for('static', filename='js/main.js') }}"></script>
+<script>
+    document.querySelectorAll('.toast').forEach(function(t) {
+        setTimeout(function() {
+            t.style.animation = 'fadeOut 0.4s ease forwards';
+            setTimeout(function() { t.remove(); }, 400);
+        }, 4000);
+    });
+
+    function showToast(message, type) {
+        type = type || 'info';
+        var icons = { success:'✅', error:'❌', info:'ℹ️' };
+        var div = document.createElement('div');
+        div.className = 'toast ' + type;
+        div.innerHTML = (icons[type]||'ℹ️') + ' <span>' + message + '</span>';
+        document.getElementById('toast-container').appendChild(div);
+        setTimeout(function() {
+            div.style.animation = 'fadeOut 0.4s ease forwards';
+            setTimeout(function() { div.remove(); }, 400);
+        }, 4000);
+    }
+    function scrollToFeatures(e) {
+    // Only intercept on the home page
+    if (window.location.pathname === '/') {
+        e.preventDefault();
+        var el = document.getElementById('features-section');
+        if (el) el.scrollIntoView({ behavior: 'smooth' });
+    }
+    // On other pages, the href="/#features" will navigate home and the
+    // browser will jump to the anchor automatically
+    }
+</script>
+{% block extra_js %}{% endblock %}
+</body>
+</html>

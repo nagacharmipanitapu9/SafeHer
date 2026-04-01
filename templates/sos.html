@@ -1,0 +1,36 @@
+{% extends 'base.html' %}
+{% block title %}SOS Emergency{% endblock %}
+
+{% block content %}
+<div class="sos-page">
+    <h1>🚨 Emergency SOS</h1>
+    <p>Press the button below to send an emergency alert with your live location to your trusted contacts.</p>
+
+    <button id="sos-button">SOS<br><small style="font-size:0.7rem;font-weight:400;">TAP & HOLD</small></button>
+
+    <div class="sos-status" id="sos-status"></div>
+
+    <div class="emergency-numbers">
+        <div class="card emergency-card">
+            <div class="number">100</div>
+            <div class="label">Police</div>
+        </div>
+        <div class="card emergency-card">
+            <div class="number">181</div>
+            <div class="label">Women Helpline</div>
+        </div>
+        <div class="card emergency-card">
+            <div class="number">108</div>
+            <div class="label">Ambulance</div>
+        </div>
+        <div class="card emergency-card">
+            <div class="number">112</div>
+            <div class="label">Emergency</div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script src="{{ url_for('static', filename='js/sos.js') }}"></script>
+{% endblock %}

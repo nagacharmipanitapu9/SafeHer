@@ -1,0 +1,22 @@
+{% extends 'base.html' %}
+{% block title %}SheShuttle{% endblock %}
+
+{% block content %}
+<div class="shuttle-page">
+    <h1>SheShuttle 🚌</h1>
+    <p style="color:var(--text-light);">Find women-only shuttle buses near your location for safe travel.</p>
+
+    <button class="btn btn-primary" onclick="findShuttles()" style="margin-top:16px;">📍 Find Nearby Shuttles</button>
+
+    <div class="shuttle-content">
+        <div id="shuttle-map"></div>
+        <div class="shuttle-list" id="shuttleList">
+            <p style="color:var(--text-light);text-align:center;padding:40px;">Click "Find Nearby Shuttles" to see available routes.</p>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script src="{{ url_for('static', filename='js/shuttle.js') }}"></script>
+{% endblock %}

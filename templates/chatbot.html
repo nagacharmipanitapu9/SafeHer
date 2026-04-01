@@ -1,0 +1,35 @@
+{% extends 'base.html' %}
+{% block title %}Legal Chatbot{% endblock %}
+
+{% block content %}
+<div class="chatbot-page">
+    <h1 style="margin-bottom:8px;">Legal Safety Assistant ⚖️</h1>
+    <p style="color:var(--text-light);margin-bottom:16px;">
+        Ask me about nearby police stations, hospitals, legal rights, or safety tips.
+    </p>
+
+    <div class="chat-container">
+
+        <div class="chat-header">🤖 SafeHer Assistant</div>
+
+        <div class="chat-messages" id="messages"></div>
+
+        <!-- QUICK BUTTONS -->
+        <div class="quick-options">
+            <button onclick="quickMsg('police')">🚓 Police</button>
+            <button onclick="quickMsg('hospital')">🏥 Hospital</button>
+            <button onclick="quickMsg('follow')">🚶 Followed</button>
+        </div>
+
+        <div class="chat-input">
+            <input type="text" id="userInput" placeholder="Ask about safety...">
+            <button onclick="chatbot()">Send</button>
+        </div>
+
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script src="{{ url_for('static', filename='js/chatbot.js') }}"></script>
+{% endblock %}

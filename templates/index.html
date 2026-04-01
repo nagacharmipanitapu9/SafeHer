@@ -1,0 +1,70 @@
+{% extends 'base.html' %}
+{% block title %}Home - Your Safety Companion{% endblock %}
+
+{% block content %}
+<section class="hero">
+    <div class="hero-content">
+        <h1>Your Safety, Our Priority</h1>
+        <p>SafeHer is a comprehensive digital safety platform designed to empower women with real-time alerts, crime reporting, legal assistance and safe transportation.</p>
+        <div class="hero-buttons">
+            <center><a href="/auth/register" class="btn btn-primary btn-lg">Get Started Free</a></center>
+        </div>
+    </div>
+</section>
+
+<div class="stats-bar">
+    <div class="stat-item">
+        <div class="stat-number">10K+</div>
+        <div class="stat-label">Women Protected</div>
+    </div>
+    <div class="stat-item">
+        <div class="stat-number">500+</div>
+        <div class="stat-label">Crimes Reported</div>
+    </div>
+    <div class="stat-item">
+        <div class="stat-number">24/7</div>
+        <div class="stat-label">SOS Support</div>
+    </div>
+    <div class="stat-item">
+        <div class="stat-number">50+</div>
+        <div class="stat-label">SheShuttle Routes</div>
+    </div>
+</div>
+
+<section class="features-section" id="features-section">
+    <h2 class="section-title">Everything You Need to Stay Safe</h2>
+    <p class="section-subtitle">Powerful tools designed with your safety in mind</p>
+
+    <div class="features-grid">
+        <div class="card feature-card">
+            <span class="feature-icon">📋</span>
+            <h3>Crime Reporting</h3>
+            <p>Report incidents anonymously with location tagging. Help build a safer community for everyone.</p>
+        </div>
+        <div class="card feature-card">
+            <span class="feature-icon">🚨</span>
+            <h3>SOS Alerts</h3>
+            <p>One-tap emergency alerts that share your live location with trusted contacts and authorities.</p>
+        </div>
+        <div class="card feature-card">
+            <span class="feature-icon">🗺️</span>
+            <h3>Crime Map</h3>
+            <p>Interactive map showing reported incidents in your area so you can plan safer routes.</p>
+        </div>
+    </div>
+
+    <!-- Second row: 2 cards centered -->
+    <div class="features-grid" style="max-width: 640px; margin: 22px auto 0;">
+        <div class="card feature-card">
+            <span class="feature-icon">⚖️</span>
+            <h3>Legal Chatbot</h3>
+            <p>Get instant legal guidance, find nearby police stations, hospitals, and emergency helplines.</p>
+        </div>
+        <div class="card feature-card">
+            <span class="feature-icon">🚌</span>
+            <h3>SheShuttle</h3>
+            <p>Locate women-only shuttle buses near you for safe, comfortable travel any time of day.</p>
+        </div>
+    </div>
+</section>
+{% endblock %}

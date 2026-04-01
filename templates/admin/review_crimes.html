@@ -1,0 +1,64 @@
+{% extends 'base.html' %}
+{% block title %}Review Crimes{% endblock %}
+
+{% block content %}
+<div class="admin-page">
+    <h1>Review Crime Reports 📋</h1>
+    <p style="color:var(--text-light);margin-bottom:24px;">Approve or reject submitted reports</p>
+
+    <div class="table-container">
+        <table>
+            <thead>
+                <tr>
+                    <th>ID</th>
+                    <th>Reporter</th>
+                    <th>Type</th>
+                    <th>Severity</th>
+                    <th>Location</th>
+                    <th>Status</th>
+                    <th>Date</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for crime in crimes %}
+                <tr id="crime-{{ crime.id }}">
+                    <td>#{{ crime.id }}</td>
+                    <td>{{ crime.reporter_name }}</td>
+                    <td>{{ crime.crime_type }}</td>
+                    <td><span class="badge badge-{{ crime.severity }}">{{ crime.severity }}</span></td>
+                    <td>{{ crime.location_name or 'N/A' }}</td>
+                    <td><span class="badge badge-{{ crime.status }}" id="status-{{ crime.id }}">{{ crime.status }}</span></td>
+                    <td>{{ crime.created_at }}</td>
+                    <td>
+                        {% if crime.status == 'pending' %}
+                        <button class="btn btn-success btn-sm" onclick="updateCrime(`{{ crime.id }}`, 'approve')">✓</button>
+                        <button class="btn btn-danger btn-sm" onclick="updateCrime(`{{ crime.id }}`, 'reject')">✗</button>
+                        {% else %}
+                        —
+                        {% endif %}
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+function updateCrime(id, action) {
+    fetch(`/admin/crimes/${id}/${action}`, { method: 'POST' })
+        .then(r => r.json())
+        .then(data => {
+            const badge = document.getElementById(`status-${id}`);
+            badge.textContent = data.status;
+            badge.className = `badge badge-${data.status}`;
+            // Remove action buttons
+            const row = document.getElementById(`crime-${id}`);
+            row.querySelector('td:last-child').textContent = '—';
+        });
+}
+</script>
+{% endblock %}
