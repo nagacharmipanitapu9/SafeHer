@@ -3,7 +3,7 @@
 
 {% block extra_css %}
 <style>
-    .profile-page { max-width: 640px; margin: 0 auto; padding: 36px 20px; }
+    .profile-page { max-width: 680px; margin: 0 auto; padding: 36px 20px 60px; }
     .profile-page h1 { margin-bottom: 4px; font-size: 1.8rem; font-weight: 800; }
     .subtitle { color: #6b7280; margin-bottom: 28px; font-size: 0.95rem; }
 
@@ -12,49 +12,60 @@
         box-shadow: 0 2px 12px rgba(0,0,0,0.07); margin-bottom: 20px;
     }
     .card h3 {
-        margin: 0 0 18px; color: #374151; font-size: 1.05rem; font-weight: 700;
+        margin: 0 0 16px; color: #374151; font-size: 1rem; font-weight: 700;
         border-bottom: 1.5px solid #f3f4f6; padding-bottom: 10px;
     }
 
-    .form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
-    @media(max-width: 520px) { .form-row { grid-template-columns: 1fr; } }
+    .form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+    @media(max-width:520px) { .form-row { grid-template-columns: 1fr; } }
 
-    .form-group { margin-bottom: 16px; }
+    .form-group { margin-bottom: 14px; }
     .form-group label {
-        display: block; margin-bottom: 6px;
-        font-weight: 500; color: #374151; font-size: 0.9rem;
+        display: block; margin-bottom: 5px;
+        font-weight: 500; color: #374151; font-size: 0.88rem;
     }
     .form-group input {
         width: 100%; padding: 10px 14px;
         border: 1.5px solid #d1d5db; border-radius: 8px;
-        font-size: 0.95rem; box-sizing: border-box;
+        font-size: 0.93rem; box-sizing: border-box;
         font-family: inherit; transition: border-color 0.2s;
     }
     .form-group input:focus { outline: none; border-color: #7c3aed; }
-    .form-group input:read-only {
-        background: #f9fafb; color: #9ca3af; cursor: not-allowed;
-    }
-
-    /* Phone input with counter */
-    .phone-wrapper { position: relative; }
-    .phone-counter {
-        position: absolute; right: 12px; top: 50%;
-        transform: translateY(-50%);
-        font-size: 0.75rem; color: #9ca3af; pointer-events: none;
-    }
-    .phone-counter.full { color: #10b981; font-weight: 600; }
-
-    .field-hint { font-size: 0.78rem; color: #9ca3af; margin-top: 4px; }
-    .field-error {
-        font-size: 0.78rem; color: #ef4444;
-        margin-top: 4px; display: none;
-    }
+    .form-group input[readonly] { background: #f9fafb; color: #9ca3af; cursor: not-allowed; }
     .form-group input.invalid { border-color: #ef4444; }
+
+    .field-hint { font-size: 0.75rem; color: #9ca3af; margin-top: 3px; }
+    .field-error { font-size: 0.75rem; color: #ef4444; margin-top: 3px; display: none; }
+
+    /* Digit inputs with counter */
+    .digit-wrap { position: relative; }
+    .digit-counter {
+        position: absolute; right: 10px; top: 50%;
+        transform: translateY(-50%); font-size: 0.72rem;
+        color: #9ca3af; pointer-events: none;
+    }
+    .digit-counter.full { color: #10b981; font-weight: 600; }
+
+    /* Aadhar formatted display */
+    .aadhar-formatted {
+        letter-spacing: 2px; font-family: monospace; font-size: 1rem;
+    }
+
+    /* Same address checkbox */
+    .same-addr-row {
+        display: flex; align-items: center; gap: 8px;
+        margin-bottom: 12px; cursor: pointer;
+    }
+    .same-addr-row input[type="checkbox"] {
+        width: 16px; height: 16px; accent-color: #6d28d9;
+        cursor: pointer; flex-shrink: 0;
+    }
+    .same-addr-row span { font-size: 0.88rem; color: #374151; }
 
     /* Avatar */
     .avatar-circle {
         width: 72px; height: 72px; border-radius: 50%;
-        background: linear-gradient(135deg, #7c3aed, #a78bfa);
+        background: linear-gradient(135deg,#7c3aed,#a78bfa);
         display: flex; align-items: center; justify-content: center;
         font-size: 2rem; color: #fff; font-weight: 700; flex-shrink: 0;
     }
@@ -63,6 +74,72 @@
         font-size: 0.78rem; font-weight: 600; padding: 2px 10px;
         border-radius: 20px; margin-top: 6px;
     }
+
+    /* Emergency contacts */
+    .ec-add-row {
+        display: grid; grid-template-columns: 1fr 1fr auto;
+        gap: 10px; align-items: end; margin-bottom: 14px;
+    }
+    @media(max-width:520px) { .ec-add-row { grid-template-columns: 1fr; } }
+    .btn-add-ec {
+        padding: 10px 16px; background: #6d28d9; color: #fff;
+        border: none; border-radius: 8px; font-size: 0.85rem;
+        font-weight: 600; cursor: pointer; white-space: nowrap;
+        transition: background 0.2s; height: fit-content;
+    }
+    .btn-add-ec:hover { background: #5b21b6; }
+
+    .ec-item {
+        background: #f9fafb; border: 1.5px solid #e5e7eb;
+        border-radius: 10px; padding: 12px 14px; margin-bottom: 10px;
+        transition: border-color 0.2s;
+    }
+    .ec-item.editing { border-color: #7c3aed; background: #faf5ff; }
+    .ec-view { display: flex; justify-content: space-between; align-items: center; gap: 10px; }
+    .ec-edit { display: none; margin-top: 10px; }
+    .ec-edit-row {
+        display: grid; grid-template-columns: 1fr 1fr auto;
+        gap: 8px; align-items: end;
+    }
+    @media(max-width:520px) { .ec-edit-row { grid-template-columns: 1fr; } }
+    .ec-edit input {
+        width: 100%; padding: 8px 10px; border: 1.5px solid #d1d5db;
+        border-radius: 6px; font-size: 0.85rem; font-family: inherit;
+        box-sizing: border-box;
+    }
+    .ec-edit input:focus { outline: none; border-color: #7c3aed; }
+    .ec-name { font-weight: 600; color: #1f2937; font-size: 0.92rem; }
+    .ec-phone { color: #6b7280; font-size: 0.84rem; margin-top: 2px; }
+
+    .btn-ec {
+        padding: 5px 10px; border: none; border-radius: 6px;
+        font-size: 0.78rem; font-weight: 600; cursor: pointer; transition: all 0.15s;
+    }
+    .btn-ec-edit   { background: #fef3c7; color: #92400e; }
+    .btn-ec-edit:hover   { background: #f59e0b; color: #fff; }
+    .btn-ec-save   { background: #d1fae5; color: #065f46; }
+    .btn-ec-save:hover   { background: #10b981; color: #fff; }
+    .btn-ec-cancel { background: #f3f4f6; color: #374151; }
+    .btn-ec-cancel:hover { background: #e5e7eb; }
+    .btn-ec-del    { background: #fee2e2; color: #991b1b; }
+    .btn-ec-del:hover    { background: #ef4444; color: #fff; }
+
+    .ec-error { font-size: 0.75rem; color: #ef4444; margin-top: 4px; display: none; }
+    .ec-required-msg {
+        background: #fef3c7; border: 1px solid #fde68a;
+        border-radius: 8px; padding: 10px 14px;
+        font-size: 0.84rem; color: #92400e; margin-bottom: 12px; display: none;
+    }
+
+    /* Password toggle */
+    .pw-wrap { position: relative; }
+    .pw-toggle {
+        position: absolute; right: 12px; top: 50%;
+        transform: translateY(-50%); background: none;
+        border: none; cursor: pointer; font-size: 1rem;
+        color: #9ca3af; padding: 0;
+    }
+    .pw-wrap input { padding-right: 38px; }
 
     /* Buttons */
     .btn-row { display: flex; gap: 12px; align-items: center; flex-wrap: wrap; }
@@ -74,21 +151,11 @@
     .btn-save:hover { background: #5b21b6; }
     .btn-cancel {
         padding: 11px 20px; background: transparent; color: #6b7280;
-        border: 1.5px solid #d1d5db; border-radius: 8px; font-size: 0.95rem;
-        font-weight: 500; cursor: pointer; transition: all 0.2s;
-        text-decoration: none; display: inline-block;
+        border: 1.5px solid #d1d5db; border-radius: 8px;
+        font-size: 0.95rem; font-weight: 500; cursor: pointer;
+        text-decoration: none; display: inline-block; transition: all 0.2s;
     }
     .btn-cancel:hover { border-color: #9ca3af; color: #374151; }
-
-    /* Password toggle */
-    .pw-wrapper { position: relative; }
-    .pw-toggle {
-        position: absolute; right: 12px; top: 50%;
-        transform: translateY(-50%); background: none;
-        border: none; cursor: pointer; font-size: 1rem; color: #9ca3af;
-        padding: 0; line-height: 1;
-    }
-    .pw-wrapper input { padding-right: 38px; }
 </style>
 {% endblock %}
 
@@ -97,103 +164,154 @@
     <h1>My Profile 👤</h1>
     <p class="subtitle">Manage your personal information and safety settings</p>
 
-    <!-- Avatar card -->
+    <!-- Avatar -->
     <div class="card" style="display:flex;align-items:center;gap:20px;flex-wrap:wrap;">
         <div class="avatar-circle">{{ user.name[0].upper() }}</div>
         <div>
             <div style="font-size:1.2rem;font-weight:700;color:#1f2937;">{{ user.name }}</div>
-            <div style="color:#6b7280;font-size:0.9rem;margin-top:2px;">{{ user.email }}</div>
-            <div style="color:#6b7280;font-size:0.9rem;margin-top:2px;">
-                📞 {{ user.phone or 'Not set' }}
-            </div>
+            <div style="color:#6b7280;font-size:0.88rem;margin-top:2px;">{{ user.email }}</div>
+            <div style="color:#6b7280;font-size:0.88rem;margin-top:2px;">📞 {{ user.phone or 'Not set' }}</div>
             <div class="badge-role">{{ user.role | capitalize }}</div>
         </div>
     </div>
 
     <form method="POST" action="/auth/profile" id="profileForm" novalidate>
+        <input type="hidden" name="contacts_json" id="contactsJson"
+               value='{{ user.contacts_json or "[]" }}'>
 
-        <!-- Personal Info -->
+        <!-- ── Personal Info ── -->
         <div class="card">
-            <h3>Personal Information</h3>
+            <h3>👤 Personal Information</h3>
             <div class="form-row">
                 <div class="form-group">
                     <label>Full Name <span style="color:#ef4444;">*</span></label>
-                    <input type="text" name="name" id="fname"
+                    <input type="text" name="name" id="pname"
                            value="{{ user.name }}" required minlength="2">
-                    <div class="field-error" id="name-error">Please enter your full name.</div>
+                    <div class="field-error" id="pname-error">Please enter your full name.</div>
                 </div>
                 <div class="form-group">
-                    <label>Phone Number</label>
-                    <div class="phone-wrapper">
+                    <label>Email Address</label>
+                    <input type="email" value="{{ user.email }}" readonly tabindex="-1">
+                    <div class="field-hint">Email cannot be changed</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- ── Contact Numbers ── -->
+        <div class="card">
+            <h3>📞 Contact Numbers</h3>
+            <div class="form-row">
+                <div class="form-group">
+                    <label>Phone Number <span style="color:#ef4444;">*</span></label>
+                    <div class="digit-wrap">
                         <input type="tel" name="phone" id="phone"
                                value="{{ user.phone or '' }}"
                                placeholder="9876543210"
                                maxlength="10" inputmode="numeric">
-                        <span class="phone-counter" id="phone-counter">
-                            {{ (user.phone or '')|length }}/10
-                        </span>
+                        <span class="digit-counter" id="phone-ctr">{{ (user.phone or '')|length }}/10</span>
                     </div>
                     <div class="field-error" id="phone-error">Must be exactly 10 digits.</div>
-                    <div class="field-hint">Enter 10-digit number without country code</div>
+                </div>
+                <div class="form-group">
+                    <label>Alternate Number <span style="color:#ef4444;">*</span></label>
+                    <div class="digit-wrap">
+                        <input type="tel" name="alternate_phone" id="alt-phone"
+                               value="{{ user.alternate_phone or '' }}"
+                               placeholder="9876543210"
+                               maxlength="10" inputmode="numeric">
+                        <span class="digit-counter" id="alt-ctr">{{ (user.alternate_phone or '')|length }}/10</span>
+                    </div>
+                    <div class="field-error" id="alt-error">Must be 10 digits and different from primary number.</div>
                 </div>
             </div>
+        </div>
+
+        <!-- ── Identity ── -->
+        <div class="card">
+            <h3>🪪 Identity</h3>
             <div class="form-group">
-                <label>Email Address</label>
-                <input type="email" value="{{ user.email }}" read-only tabindex="-1">
-                <div class="field-hint">Email cannot be changed</div>
+                <label>Aadhar Number</label>
+                <div class="digit-wrap">
+                    <input type="text" name="aadhar_number" id="aadhar"
+                           value="{{ user.aadhar_number or '' }}"
+                           placeholder="XXXX XXXX XXXX"
+                           maxlength="14" inputmode="numeric"
+                           class="aadhar-formatted">
+                    <span class="digit-counter" id="aadhar-ctr">0/12</span>
+                </div>
+                <div class="field-error" id="aadhar-error">Aadhar must be exactly 12 digits.</div>
+                <div class="field-hint">Stored securely · Format: XXXX XXXX XXXX</div>
             </div>
+        </div>
+
+        <!-- ── Address ── -->
+        <div class="card">
+            <h3>🏠 Address</h3>
             <div class="form-group">
-                <label>Address</label>
-                <input type="text" name="address"
-                       value="{{ user.address or '' }}"
-                       placeholder="Your home / work address">
+                <label>Current Address <span style="color:#ef4444;">*</span></label>
+                <input type="text" name="current_address" id="curr-addr"
+                       value="{{ user.current_address or '' }}"
+                       placeholder="Your current residential address">
+                <div class="field-error" id="curr-addr-error">Please enter your current address.</div>
+            </div>
+
+            <label class="same-addr-row">
+                <input type="checkbox" id="same-addr-chk">
+                <span>Permanent address is same as current address</span>
+            </label>
+
+            <div class="form-group">
+                <label>Permanent Address</label>
+                <input type="text" name="permanent_address" id="perm-addr"
+                       value="{{ user.permanent_address or '' }}"
+                       placeholder="Permanent address (if different)">
             </div>
         </div>
 
-<!-- Emergency Contact -->
-<div class="card">
+        <!-- ── Emergency Contacts ── -->
+        <div class="card">
+            <h3>🆘 Emergency Contacts <span style="color:#ef4444;font-size:0.8rem;">* at least 1 required</span></h3>
+            <p style="color:#6b7280;font-size:0.84rem;margin-top:-8px;margin-bottom:16px;">
+                These people will be notified when you trigger an SOS alert.
+            </p>
 
-    <h3>🆘 Emergency Contacts</h3>
+            <div class="ec-required-msg" id="ec-required-msg">
+                ⚠️ Please add at least one emergency contact before saving.
+            </div>
 
-    <p style="color:#6b7280;font-size:0.88rem;margin-bottom:16px;">
-        Add and manage people who will be notified during emergencies.
-    </p>
+            <!-- Add new contact row -->
+            <div class="ec-add-row">
+                <div class="form-group" style="margin-bottom:0;">
+                    <label>Name</label>
+                    <input type="text" id="ec-new-name" placeholder="e.g. Mom, Sister">
+                </div>
+                <div class="form-group" style="margin-bottom:0;">
+                    <label>Phone (10 digits)</label>
+                    <div class="digit-wrap">
+                        <input type="tel" id="ec-new-phone" placeholder="9876543210"
+                               maxlength="10" inputmode="numeric">
+                        <span class="digit-counter" id="ec-new-ctr">0/10</span>
+                    </div>
+                </div>
+                <button type="button" class="btn-add-ec" onclick="addContact()">➕ Add</button>
+            </div>
+            <div class="ec-error" id="ec-add-error"></div>
 
-    <!-- HIDDEN FIELD -->
-    <input type="hidden" name="contacts_json" id="contactsJson" value='{{ contacts|tojson | safe }}'>
-
-    <!-- INPUT ROW -->
-    <div class="form-row">
-        <div class="form-group">
-            <label>Contact Name</label>
-            <input type="text" id="cname" placeholder="e.g. Mom, Friend">
+            <!-- Contact list -->
+            <div id="contactList"></div>
         </div>
-        <div class="form-group">
-            <label>Contact Phone</label>
-            <input type="tel" id="cphone" placeholder="9876543210" maxlength="10">
-        </div>
-    </div>
 
-    <!-- ADD BUTTON -->
-    <button type="button" class="btn-save" onclick="addContact()" style="margin-bottom:10px;">
-        ➕ Add Contact
-    </button>
-
-    <!-- CONTACT LIST -->
-    <div id="contactList"></div>
-
-</div>
-        <!-- Change Password -->
+        <!-- ── Change Password ── -->
         <div class="card">
             <h3>🔒 Change Password</h3>
-            <p style="color:#6b7280;font-size:0.88rem;margin-top:-10px;margin-bottom:16px;">
+            <p style="color:#6b7280;font-size:0.84rem;margin-top:-8px;margin-bottom:14px;">
                 Leave blank to keep your current password.
             </p>
             <div class="form-group">
                 <label>New Password</label>
-                <div class="pw-wrapper">
-                    <input type="password" name="new_password" id="new-password"
-                           placeholder="Min 6 characters" minlength="6">
+                <div class="pw-wrap">
+                    <input type="password" name="new_password" id="new-pw"
+                           placeholder="Min 6 characters">
                     <button type="button" class="pw-toggle" onclick="togglePw()">👁️</button>
                 </div>
                 <div class="field-error" id="pw-error">Password must be at least 6 characters.</div>
@@ -208,179 +326,276 @@
 </div>
 
 <script>
-    // ── Phone input — digits only, max 10 ──────────────────
-    function setupPhoneInput(inputId, counterId, errorId) {
-        var input   = document.getElementById(inputId);
-        var counter = document.getElementById(counterId);
-        if (!input) return;
+// ── Digit-only phone inputs ────────────────────────────
+function setupDigit(id, ctrId, max) {
+    var inp = document.getElementById(id);
+    var ctr = document.getElementById(ctrId);
+    if (!inp || !ctr) return;
 
-        function update() {
-            input.value = input.value.replace(/\D/g, '').slice(0, 10);
-            var len = input.value.length;
-            counter.textContent = len + '/10';
-            counter.className   = 'phone-counter' + (len === 10 ? ' full' : '');
-        }
-
-        input.addEventListener('input', update);
-        input.addEventListener('keydown', function(e) {
-            var allowed = ['Backspace','Delete','Tab','ArrowLeft','ArrowRight'];
-            if (!allowed.includes(e.key) && !/^\d$/.test(e.key)) e.preventDefault();
-        });
-
-        // Init counter on page load
-        update();
+    function update() {
+        inp.value = inp.value.replace(/\D/g,'').slice(0, max);
+        ctr.textContent = inp.value.length + '/' + max;
+        ctr.className = 'digit-counter' + (inp.value.length === max ? ' full' : '');
     }
-
-    setupPhoneInput('phone',    'phone-counter',  'phone-error');
-
-    // ── Password toggle ────────────────────────────────────
-    function togglePw() {
-        var input = document.getElementById('new-password');
-        input.type = input.type === 'password' ? 'text' : 'password';
-    }
-
-    // ── Form validation ────────────────────────────────────
-    document.getElementById('profileForm').addEventListener('submit', function(e) {
-        saveContacts();
-        var valid = true;
-
-        function showErr(errId, inputEl) {
-            document.getElementById(errId).style.display = 'block';
-            if (inputEl) inputEl.classList.add('invalid');
-            valid = false;
-        }
-        function clearErr(errId, inputEl) {
-            document.getElementById(errId).style.display = 'none';
-            if (inputEl) inputEl.classList.remove('invalid');
-        }
-
-        // Name required
-        var nameEl = document.getElementById('fname');
-        if (nameEl.value.trim().length < 2) showErr('name-error', nameEl);
-        else clearErr('name-error', nameEl);
-
-        // Phone — if filled must be 10 digits
-        var phoneEl = document.getElementById('phone');
-        if (phoneEl.value.length > 0 && phoneEl.value.length !== 10)
-            showErr('phone-error', phoneEl);
-        else clearErr('phone-error', phoneEl);
-
-        // EC phone — if filled must be 10 digits
-        var ecEl = document.getElementById('ec-phone');
-        if (ecEl.value.length > 0 && ecEl.value.length !== 10)
-            showErr('ec-phone-error', ecEl);
-        else clearErr('ec-phone-error', ecEl);
-
-        // Password — if filled must be >= 6
-        var pwEl = document.getElementById('new-password');
-        if (pwEl.value.length > 0 && pwEl.value.length < 6)
-            showErr('pw-error', pwEl);
-        else clearErr('pw-error', pwEl);
-
-        if (!valid) e.preventDefault();
+    inp.addEventListener('input', update);
+    inp.addEventListener('keydown', function(e) {
+        var ok = ['Backspace','Delete','Tab','ArrowLeft','ArrowRight','ArrowUp','ArrowDown'];
+        if (!ok.includes(e.key) && !/^\d$/.test(e.key)) e.preventDefault();
     });
-    let profileContacts = [];
+    update();
+}
 
-    function saveContacts() {
-        var hidden = document.getElementById('contactsJson');
-        if (hidden) {
-            hidden.value = JSON.stringify(profileContacts);
+setupDigit('phone',        'phone-ctr',    10);
+setupDigit('alt-phone',    'alt-ctr',      10);
+setupDigit('ec-new-phone', 'ec-new-ctr',   10);
+
+// ── Aadhar — digits only, max 12, formatted XXXX XXXX XXXX ──
+var aadharInp = document.getElementById('aadhar');
+var aadharCtr = document.getElementById('aadhar-ctr');
+
+function formatAadhar(raw) {
+    raw = raw.replace(/\D/g,'').slice(0,12);
+    var parts = [];
+    for (var i=0; i<raw.length; i+=4) parts.push(raw.slice(i,i+4));
+    return parts.join(' ');
+}
+function rawAadhar() {
+    return aadharInp.value.replace(/\D/g,'');
+}
+
+aadharInp.addEventListener('input', function() {
+    var raw = rawAadhar();
+    var pos = aadharInp.selectionStart;
+    aadharInp.value = formatAadhar(raw);
+    aadharCtr.textContent = raw.length + '/12';
+    aadharCtr.className = 'digit-counter' + (raw.length === 12 ? ' full' : '');
+});
+aadharInp.addEventListener('keydown', function(e) {
+    var ok = ['Backspace','Delete','Tab','ArrowLeft','ArrowRight',' '];
+    if (!ok.includes(e.key) && !/^\d$/.test(e.key)) e.preventDefault();
+});
+// Init format on load
+if (aadharInp.value) {
+    aadharInp.value = formatAadhar(rawAadhar());
+    aadharCtr.textContent = rawAadhar().length + '/12';
+    if (rawAadhar().length === 12) aadharCtr.className = 'digit-counter full';
+}
+
+// ── Same address checkbox ──────────────────────────────
+var sameChk  = document.getElementById('same-addr-chk');
+var currAddr = document.getElementById('curr-addr');
+var permAddr = document.getElementById('perm-addr');
+
+// Check on load if both are same
+if (currAddr.value && currAddr.value === permAddr.value) {
+    sameChk.checked = true;
+    permAddr.disabled = true;
+    permAddr.style.background = '#f9fafb';
+}
+
+sameChk.addEventListener('change', function() {
+    if (this.checked) {
+        permAddr.value = currAddr.value;
+        permAddr.disabled = true;
+        permAddr.style.background = '#f9fafb';
+    } else {
+        permAddr.disabled = false;
+        permAddr.style.background = '';
+        permAddr.value = '';
+    }
+});
+
+currAddr.addEventListener('input', function() {
+    if (sameChk.checked) permAddr.value = this.value;
+});
+
+// ── Password toggle ──────────────────────────────────
+function togglePw() {
+    var inp = document.getElementById('new-pw');
+    inp.type = inp.type === 'password' ? 'text' : 'password';
+}
+
+// ── Emergency Contacts ────────────────────────────────
+var contacts = [];
+
+function loadContacts() {
+    try {
+        var raw = document.getElementById('contactsJson').value;
+        contacts = raw ? JSON.parse(raw) : [];
+    } catch(e) { contacts = []; }
+    renderContacts();
+}
+
+function saveContacts() {
+    document.getElementById('contactsJson').value = JSON.stringify(contacts);
+}
+
+function addContact() {
+    var nameInp  = document.getElementById('ec-new-name');
+    var phoneInp = document.getElementById('ec-new-phone');
+    var errEl    = document.getElementById('ec-add-error');
+    var name     = nameInp.value.trim();
+    var phone    = phoneInp.value.replace(/\D/g,'');
+    var userPhone = document.getElementById('phone').value.replace(/\D/g,'');
+
+    errEl.style.display = 'none';
+
+    if (!name) { errEl.textContent = 'Please enter a contact name.'; errEl.style.display='block'; return; }
+    if (phone.length !== 10) { errEl.textContent = 'Phone must be exactly 10 digits.'; errEl.style.display='block'; return; }
+    if (phone === userPhone) { errEl.textContent = 'Emergency contact cannot be the same as your phone number.'; errEl.style.display='block'; return; }
+
+    // Check duplicate phone
+    var dup = contacts.some(function(c) { return c.phone === phone; });
+    if (dup) { errEl.textContent = 'This phone number is already added.'; errEl.style.display='block'; return; }
+
+    contacts.push({ name: name, phone: phone, editMode: false });
+    nameInp.value  = '';
+    phoneInp.value = '';
+    document.getElementById('ec-new-ctr').textContent = '0/10';
+    saveContacts();
+    renderContacts();
+    document.getElementById('ec-required-msg').style.display = 'none';
+}
+
+function deleteContact(i) {
+    contacts.splice(i, 1);
+    saveContacts();
+    renderContacts();
+}
+
+function startEdit(i) {
+    contacts[i].editMode = true;
+    renderContacts();
+}
+
+function cancelEdit(i) {
+    contacts[i].editMode = false;
+    renderContacts();
+}
+
+function saveEdit(i) {
+    var newName  = document.getElementById('ec-edit-name-'+i).value.trim();
+    var newPhone = document.getElementById('ec-edit-phone-'+i).value.replace(/\D/g,'');
+    var userPhone = document.getElementById('phone').value.replace(/\D/g,'');
+    var errEl    = document.getElementById('ec-edit-err-'+i);
+
+    errEl.style.display = 'none';
+    if (!newName) { errEl.textContent = 'Name is required.'; errEl.style.display='block'; return; }
+    if (newPhone.length !== 10) { errEl.textContent = 'Phone must be 10 digits.'; errEl.style.display='block'; return; }
+    if (newPhone === userPhone) { errEl.textContent = 'Cannot be same as your number.'; errEl.style.display='block'; return; }
+
+    // Check duplicate (excluding self)
+    var dup = contacts.some(function(c,idx) { return idx!==i && c.phone===newPhone; });
+    if (dup) { errEl.textContent = 'Phone already used by another contact.'; errEl.style.display='block'; return; }
+
+    contacts[i].name     = newName;
+    contacts[i].phone    = newPhone;
+    contacts[i].editMode = false;
+    saveContacts();
+    renderContacts();
+}
+
+function renderContacts() {
+    var list = document.getElementById('contactList');
+    if (!contacts.length) {
+        list.innerHTML = '<p style="color:#9ca3af;font-size:0.84rem;padding:8px 0;">No emergency contacts added yet.</p>';
+        return;
+    }
+    list.innerHTML = contacts.map(function(c, i) {
+        if (c.editMode) {
+            return '<div class="ec-item editing" id="ec-item-'+i+'">'
+                + '<div class="ec-edit" style="display:block;">'
+                +   '<div class="ec-edit-row">'
+                +     '<div><label style="font-size:0.8rem;font-weight:500;color:#374151;">Name</label>'
+                +       '<input id="ec-edit-name-'+i+'" value="'+c.name+'" placeholder="Contact name"></div>'
+                +     '<div><label style="font-size:0.8rem;font-weight:500;color:#374151;">Phone</label>'
+                +       '<input id="ec-edit-phone-'+i+'" value="'+c.phone+'" placeholder="10 digits" maxlength="10" inputmode="numeric"></div>'
+                +     '<div style="display:flex;gap:6px;align-items:flex-end;padding-bottom:2px;">'
+                +       '<button type="button" class="btn-ec btn-ec-save" onclick="saveEdit('+i+')">✓ Save</button>'
+                +       '<button type="button" class="btn-ec btn-ec-cancel" onclick="cancelEdit('+i+')">✕</button>'
+                +     '</div>'
+                +   '</div>'
+                +   '<div class="ec-error" id="ec-edit-err-'+i+'"></div>'
+                + '</div></div>';
         }
-        localStorage.setItem('contacts', JSON.stringify(profileContacts));
+        return '<div class="ec-item" id="ec-item-'+i+'">'
+            + '<div class="ec-view">'
+            +   '<div>'
+            +     '<div class="ec-name">'+c.name+'</div>'
+            +     '<div class="ec-phone">📞 '+c.phone+'</div>'
+            +   '</div>'
+            +   '<div style="display:flex;gap:6px;">'
+            +     '<button type="button" class="btn-ec btn-ec-edit" onclick="startEdit('+i+')">✏️ Edit</button>'
+            +     '<button type="button" class="btn-ec btn-ec-del"  onclick="deleteContact('+i+')">🗑️ Remove</button>'
+            +   '</div>'
+            + '</div></div>';
+    }).join('');
+}
+
+loadContacts();
+
+// ── Form validation on submit ────────────────────────
+document.getElementById('profileForm').addEventListener('submit', function(e) {
+    saveContacts();
+    var valid = true;
+
+    function showErr(errId, inpId) {
+        var err = document.getElementById(errId);
+        var inp = inpId ? document.getElementById(inpId) : null;
+        if (err) err.style.display = 'block';
+        if (inp) inp.classList.add('invalid');
+        valid = false;
+    }
+    function clearErr(errId, inpId) {
+        var err = document.getElementById(errId);
+        var inp = inpId ? document.getElementById(inpId) : null;
+        if (err) err.style.display = 'none';
+        if (inp) inp.classList.remove('invalid');
     }
 
-    function loadContacts() {
-        var hidden = document.getElementById('contactsJson');
-        try {
-            profileContacts = hidden && hidden.value ? JSON.parse(hidden.value) : [];
-        } catch (e) {
-            profileContacts = [];
-        }
-        var local = JSON.parse(localStorage.getItem('contacts') || '[]');
-        if (!profileContacts.length && local.length) {
-            profileContacts = local;
-        }
-        saveContacts();
-        displayContacts();
+    // Name
+    var n = document.getElementById('pname').value.trim();
+    if (n.length < 2) showErr('pname-error','pname'); else clearErr('pname-error','pname');
+
+    // Phone
+    var ph = document.getElementById('phone').value;
+    if (ph.length !== 10) showErr('phone-error','phone'); else clearErr('phone-error','phone');
+
+    // Alternate phone — required, must differ from primary
+    var ap = document.getElementById('alt-phone').value;
+    if (ap.length !== 10 || ap === ph) {
+        showErr('alt-error','alt-phone');
+    } else clearErr('alt-error','alt-phone');
+
+    // Aadhar — if filled must be 12 digits
+    var ad = rawAadhar();
+    if (ad.length > 0 && ad.length !== 12) showErr('aadhar-error','aadhar'); else clearErr('aadhar-error','aadhar');
+
+    // Current address required
+    var ca = document.getElementById('curr-addr').value.trim();
+    if (!ca) showErr('curr-addr-error','curr-addr'); else clearErr('curr-addr-error','curr-addr');
+
+    // At least 1 emergency contact
+    if (!contacts.length) {
+        document.getElementById('ec-required-msg').style.display = 'block';
+        document.getElementById('contactList').scrollIntoView({ behavior:'smooth', block:'center' });
+        valid = false;
+    } else {
+        document.getElementById('ec-required-msg').style.display = 'none';
     }
 
-    function addContact() {
-        var name = document.getElementById('cname').value.trim();
-        var phone = document.getElementById('cphone').value.trim();
-        if (!name || !phone || phone.length !== 10) {
-            alert('Please enter a valid name and 10-digit phone number.');
-            return;
-        }
-        profileContacts.push({ name: name, phone: phone });
-        document.getElementById('cname').value = '';
-        document.getElementById('cphone').value = '';
-        saveContacts();
-        displayContacts();
-    }
+    // Password
+    var pw = document.getElementById('new-pw').value;
+    if (pw.length > 0 && pw.length < 6) showErr('pw-error','new-pw'); else clearErr('pw-error','new-pw');
 
-    function editContact(index) {
-        var contact = profileContacts[index];
-        var newName = prompt('Edit contact name:', contact.name);
-        if (newName === null) return;
-        var newPhone = prompt('Edit contact phone (10 digits):', contact.phone);
-        if (newPhone === null) return;
+    // Strip spaces from aadhar before submit
+    var aadharField = document.querySelector('input[name="aadhar_number"]');
+    if (aadharField) aadharField.value = rawAadhar();
 
-        newName = newName.trim();
-        newPhone = newPhone.trim().replace(/\D/g, '');
-        if (!newName || newPhone.length !== 10) {
-            alert('Invalid update; phone must be 10 digits.');
-            return;
-        }
+    // Re-enable perm addr if disabled (so it submits)
+    if (permAddr.disabled) permAddr.disabled = false;
 
-        profileContacts[index] = { name: newName, phone: newPhone };
-        saveContacts();
-        displayContacts();
-    }
-
-    function deleteContact(index) {
-        if (!confirm('Remove this emergency contact?')) return;
-        profileContacts.splice(index, 1);
-        saveContacts();
-        displayContacts();
-    }
-
-    function sendSOS(index) {
-        alert('SOS will notify ' + profileContacts[index].name + ' at ' + profileContacts[index].phone + '.');
-    }
-
-    function displayContacts() {
-        let list = document.getElementById('contactList');
-        if (!list) return;
-
-        list.innerHTML = '';
-        if (!profileContacts.length) {
-            list.innerHTML = '<p style="color:#6b7280;">No emergency contacts added yet.</p>';
-            return;
-        }
-
-        profileContacts.forEach((c, index) => {
-            let div = document.createElement('div');
-            div.style.borderTop = '1px solid #f3f4f6';
-            div.style.padding = '12px 0';
-
-            div.innerHTML = `
-                <div style="display:flex;justify-content:space-between;align-items:center;">
-                    <div>
-                        <div style="font-weight:600;color:#1f2937;">${c.name}</div>
-                        <div style="color:#6b7280;font-size:0.9rem;">📞 ${c.phone}</div>
-                    </div>
-                    <div style="display:flex;gap:6px;">
-                        <button onclick="editContact(${index})" style="background:#f59e0b;color:white;border:none;padding:6px 8px;border-radius:6px;">✏️</button>
-                        <button onclick="deleteContact(${index})" style="background:#ef4444;color:white;border:none;padding:6px 8px;border-radius:6px;">🗑️</button>
-                        <button onclick="sendSOS(${index})" style="background:#dc2626;color:white;border:none;padding:6px 8px;border-radius:6px;">🚨</button>
-                    </div>
-                </div>
-            `;
-            list.appendChild(div);
-        });
-    }
-
-    // initialize once page loads
-    loadContacts();
+    if (!valid) e.preventDefault();
+});
 </script>
 {% endblock %}

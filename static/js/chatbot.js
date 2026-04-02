@@ -1,185 +1,170 @@
-// WELCOME + LOCATION PERMISSION
-window.onload = function() {
+var userLat = null;
+var userLng = null;
 
-  addBotMessage("Hi! I can help with safety tips, self-defense, or find nearby police stations and hospitals.");
+// Welcome + request location on load
+window.onload = function () {
+    addBotMessage("Hi! I'm your SafeHer assistant. I can help with safety tips, legal guidance, or find nearby emergency services.");
 
-  setTimeout(() => {
-    addBotMessage("📍 We need your location to show nearby emergency services.");
-
-    navigator.geolocation.getCurrentPosition(
-      function() {
-        addBotMessage("✅ Location access granted! You can now search for police or hospitals.");
-      },
-      function() {
-        addBotMessage("⚠️ Location access denied. Please enable it to use emergency features.");
-      }
-    );
-
-  }, 1000);
+    setTimeout(function () {
+        addBotMessage("📍 Requesting your location to enable nearby service search...");
+        if (navigator.geolocation) {
+            navigator.geolocation.getCurrentPosition(
+                function (pos) {
+                    userLat = pos.coords.latitude;
+                    userLng = pos.coords.longitude;
+                    addBotMessage("✅ Location accessed! Use the buttons below to find nearby Police Stations or Hospitals.");
+                },
+                function () {
+                    addBotMessage("⚠️ Location access denied. Please enable location in your browser to use nearby search features.");
+                }
+            );
+        } else {
+            addBotMessage("⚠️ Your browser does not support geolocation.");
+        }
+    }, 800);
 };
 
-// ENTER KEY
-document.addEventListener("DOMContentLoaded", function() {
-  document.getElementById("userInput").addEventListener("keypress", function(e) {
-    if(e.key === "Enter") chatbot();
-  });
-});
-
-// QUICK BUTTONS
-function quickMsg(text) {
-  document.getElementById("userInput").value = text;
-  chatbot();
+// Add message helpers
+function addBotMessage(html) {
+    var msgs = document.getElementById('messages');
+    var div  = document.createElement('div');
+    div.className = 'message bot';
+    div.innerHTML = html;
+    msgs.appendChild(div);
+    msgs.scrollTop = msgs.scrollHeight;
 }
 
-// MESSAGE FUNCTIONS
 function addUserMessage(text) {
-  let msg = document.createElement("div");
-  msg.className = "message user";
-  msg.innerText = text;
-  document.getElementById("messages").appendChild(msg);
+    var msgs = document.getElementById('messages');
+    var div  = document.createElement('div');
+    div.className = 'message user';
+    div.innerText = text;
+    msgs.appendChild(div);
+    msgs.scrollTop = msgs.scrollHeight;
 }
 
-function addBotMessage(text) {
-  let msg = document.createElement("div");
-  msg.className = "message bot";
-  msg.innerHTML = text;
-  document.getElementById("messages").appendChild(msg);
-  document.getElementById("messages").scrollTop = messages.scrollHeight;
+function scrollToChat() {
+    document.querySelector('.chat-container').scrollIntoView({ behavior: 'smooth', block: 'start' });
 }
 
-// CHATBOT LOGIC
+// Quick message from buttons
+function quickMsg(text) {
+    document.getElementById('userInput').value = text;
+    chatbot();
+}
+
+// ── MAIN CHATBOT LOGIC ────────────────────────────────────
 function chatbot() {
-  let inputField = document.getElementById("userInput");
-  let input = inputField.value.toLowerCase();
+    var inputField = document.getElementById('userInput');
+    var input      = inputField.value.trim();
+    if (!input) return;
 
-  if(input === "") return;
+    addUserMessage(input);
+    inputField.value = '';
 
-  addUserMessage(input);
+    var lower = input.toLowerCase();
+    var response = '';
 
-  // LOCATION FEATURES
-  if(input.includes("Police")) {
-    getLocation("police station");
-    inputField.value = "";
-    return;
-  }
+    if (lower.includes('police') || lower.includes('station')) {
+        findNearby('police station', '🚔 Police Station');
+        return;
+    }
+    if (lower.includes('hospital') || lower.includes('ambulance') || lower.includes('medical')) {
+        findNearby('hospital', '🏥 Hospital');
+        return;
+    }
+    if (lower.includes('follow') || lower.includes('stalked') || lower.includes('being followed')) {
+        response = '🚨 Go to a crowded public place immediately. Call a trusted person. If the threat is immediate, call Police: <b>100</b> or Emergency: <b>112</b>.';
+    } else if (lower.includes('self defense') || lower.includes('defend') || lower.includes('attack')) {
+        response = '💪 Target sensitive areas (eyes, nose, knees). Shout loudly to attract attention. Your goal is to escape, not fight. Run to a safe/crowded place.';
+    } else if (lower.includes('alone') || lower.includes('night') || lower.includes('unsafe') || lower.includes('scared')) {
+        response = '🌙 Stay in well-lit areas. Share your live location with a trusted contact. Keep emergency numbers ready: Police <b>100</b>, Women Helpline <b>1091</b>, Emergency <b>112</b>.';
+    } else if (lower.includes('legal') || lower.includes('fir') || lower.includes('complaint') || lower.includes('rights')) {
+        response = '⚖️ You have the right to file an FIR at any police station at no cost. For online complaints visit cybercrime.gov.in. Women Helpline: <b>1091</b>. Emergency: <b>112</b>.';
+    } else if (lower.includes('helpline') || lower.includes('number') || lower.includes('emergency')) {
+        response = '📞 <b>Emergency Numbers:</b><br>Police: 100<br>Ambulance: 102<br>Women Helpline: 1091<br>National Emergency: 112<br>Cyber Crime: 1930';
+    } else if (lower.includes('report') || lower.includes('crime')) {
+        response = '📋 You can report crimes directly on SafeHer! Go to <a href="/crime/report" style="color:#7b2cbf;font-weight:600;">Report a Crime</a> in your dashboard. Reports are reviewed by our admin team.';
+    } else if (lower.includes('travel') || lower.includes('safe') || lower.includes('transport')) {
+        response = '🚌 Use trusted transport. Share your ride details and live location with someone you trust. Use SafeHer\'s <a href="/shuttle" style="color:#7b2cbf;font-weight:600;">SheShuttle</a> for women-only safe transport.';
+    } else {
+        response = 'I can help with safety tips, legal guidance, finding nearby police stations/hospitals, or reporting crimes. What do you need help with?';
+    }
 
-  if(input.includes("Hospital")) {
-    getLocation("hospital");
-    inputField.value = "";
-    return;
-  }
-
-  let response = "";
-
-  if(input.includes("Follow")) {
-    response = "Go to a crowded place immediately. Call someone and avoid isolated areas.";
-  }
-  else if(input.includes("Self Defense") || input.includes("Defend")) {
-    response = "Target eyes, nose, and knees. Focus on escaping safely.";
-  }
-  else if(input.includes("attack")) {
-    response = "Shout loudly, attract attention, and run to a safe place.";
-  }
-  else if(input.includes("alone") || input.includes("night")) {
-    response = "Stay in well-lit areas and share your location with someone you trust.";
-  }
-  else if(input.includes("scared") || input.includes("panic")) {
-    response = "Take deep breaths. Stay calm and move to a safe place.";
-  }
-  else if(input.includes("legal")) {
-    response = "You have the right to file an FIR at any police station. Emergency helpline: 112.";
-  }
-  else {
-    response = "I can help with safety tips, legal guidance, or finding nearby emergency services.";
-  }
-
-  addBotMessage(response);
-  inputField.value = "";
+    addBotMessage(response);
 }
 
-// LOCATION FUNCTION
-function getLocation(place) {
+// ── FIND NEARBY (opens Google Maps) ──────────────────────
+function findNearby(placeType, label) {
+    addUserMessage('Find nearest ' + label);
 
-  addBotMessage("📍 Fetching your location...");
-
-  navigator.permissions.query({ name: 'geolocation' }).then(function(result) {
-
-    if (result.state === 'denied') {
-      addBotMessage("⚠️ Location access is blocked. Please enable it to find nearby " + place + "s.");
-      return;
+    if (!userLat || !userLng) {
+        // Try getting location now
+        if (!navigator.geolocation) {
+            addBotMessage('⚠️ Geolocation is not supported by your browser.');
+            return;
+        }
+        addBotMessage('📍 Getting your location...');
+        navigator.geolocation.getCurrentPosition(
+            function (pos) {
+                userLat = pos.coords.latitude;
+                userLng = pos.coords.longitude;
+                showNearbyButtons(placeType, label, userLat, userLng);
+            },
+            function () {
+                addBotMessage('⚠️ Could not get your location. Please enable location access in your browser settings, then try again.');
+            }
+        );
+        return;
     }
-
-    navigator.geolocation.getCurrentPosition(
-      function(pos) {
-
-        let lat = pos.coords.latitude;
-        let lon = pos.coords.longitude;
-
-        let link = "https://www.google.com/maps/search/" + place + "/@" + lat + "," + lon + ",15z";
-
-        addBotMessage(`
-          Here are nearby ${place}s 👇<br>
-          <a href="${link}" target="_blank" style="
-            display:inline-block;
-            margin-top:8px;
-            padding:8px 12px;
-            background:#5a67d8;
-            color:white;
-            border-radius:8px;
-            text-decoration:none;">
-            Open in Maps
-          </a>
-        `);
-      },
-      function() {
-        addBotMessage("📍 Please allow location access to get nearby " + place + "s.");
-      }
-    );
-
-  });
-
+    showNearbyButtons(placeType, label, userLat, userLng);
 }
-function faqMsg(question){
 
-    const messages = document.getElementById("messages");
+function showNearbyButtons(placeType, label, lat, lng) {
+    // Google Maps Search URL
+    var googleMapsUrl = 'https://www.google.com/maps/search/' + encodeURIComponent(placeType)
+        + '/@' + lat + ',' + lng + ',15z';
 
-    // show user question
-    messages.innerHTML += `<div class="message user">${question}</div>`;
+    // Google Maps Directions URL (nearest)
+    var directionsUrl = 'https://www.google.com/maps/dir/?api=1'
+        + '&origin=' + lat + ',' + lng
+        + '&destination=' + encodeURIComponent(placeType)
+        + '&travelmode=driving';
 
-    let answer = "";
+    var html = '📍 Here are the nearest <b>' + label + 's</b> near you:<br><br>'
+        + '<a href="' + googleMapsUrl + '" target="_blank" class="map-btn">🗺️ View on Google Maps</a>'
+        + '<a href="' + directionsUrl + '" target="_blank" class="map-btn-alt">🧭 Get Directions</a>'
+        + '<br><small style="color:#9ca3af;margin-top:6px;display:block;">Opens in Google Maps with your current location</small>';
 
-    if(question === "📞 What is the emergency number?"){
-        answer = "📞 Emergency numbers in India: Police 100, Ambulance 102, Women Helpline 1091.";
-    }
+    addBotMessage(html);
+    scrollToChat();
+}
 
-    else if(question === "📍 How can I share my live location?"){
-        answer = "You can share your live location using Google Maps or WhatsApp Live Location to our friends and family.";
-    }
+// ── FAQ CLICK ─────────────────────────────────────────────
+function faqMsg(question) {
+    addUserMessage(question);
+    scrollToChat();
 
-    else if(question === "⚠️ What should I do if I feel unsafe?"){
-        answer = "First, move to a crowded place, call a trusted person, or contact the police immediately. Stay safe and be aware of your surroundings.";
-    }
+    var answers = {
+        '📞 What is the emergency number?':
+            '📞 <b>Emergency numbers in India:</b><br>Police: <b>100</b><br>Ambulance: <b>102</b><br>Women Helpline: <b>1091</b><br>National Emergency: <b>112</b><br>Cyber Crime: <b>1930</b>',
 
-    else if(question === "🌙 What are some late night safety tips?"){
-        answer = "Avoid isolated areas, keep emergency contacts ready, and share your travel details before leaving.";
-    }
+        '📍 How can I share my live location?':
+            '📍 Share your live location using <b>Google Maps</b> (tap your location → Share) or <b>WhatsApp Live Location</b>. You can also use SafeHer\'s SOS feature which shares your location automatically with your emergency contact.',
 
-    else if(question === "🚨 How can I report a crime?"){
-        answer = "You can report crimes at the nearest police station or through the National Cyber Crime portal or by the report crime in SafeHer platform.";
-    }
+        '⚠️ What should I do if I feel unsafe?':
+            '⚠️ <b>Immediate steps:</b><br>1. Move to a crowded/public place<br>2. Call a trusted person<br>3. Use SafeHer SOS to alert your emergency contact<br>4. Call Police (100) or Emergency (112) if in immediate danger',
 
-    else if(question === "🚌 What are some safe travel tips?"){
-        answer = "Use trusted transport services and always share your ride details with someone.";
-    }
+        '🌙 What are some late night safety tips?':
+            '🌙 <b>Late night safety tips:</b><br>• Avoid isolated/unlit areas<br>• Keep emergency contacts saved<br>• Share your travel route with someone<br>• Use trusted transport (SafeHer SheShuttle)<br>• Stay alert and avoid distractions',
 
-    // bot reply
-    messages.innerHTML += `<div class="message bot">${answer}</div>`;
+        '🚨 How can I report a crime?':
+            '🚨 You can report crimes through:<br>• <a href="/crime/report" style="color:#7b2cbf;font-weight:600;">SafeHer Crime Report</a> (on this platform)<br>• Nearest police station (free to file FIR)<br>• National Cyber Crime portal: cybercrime.gov.in<br>• Call 100 (Police) or 112 (Emergency)',
 
-    // scroll to latest message
-    messages.scrollTop = messages.scrollHeight;
+        '🚌 What are some safe travel tips?':
+            '🚌 <b>Safe travel tips:</b><br>• Use trusted services like <a href="/shuttle" style="color:#7b2cbf;font-weight:600;">SheShuttle</a><br>• Share your ride details with a contact<br>• Enable live location sharing<br>• Sit near the driver or in visible seats<br>• Avoid travelling alone very late at night'
+    };
 
-    // scroll page to chatbot
-    document.querySelector(".chat-container").scrollIntoView({
-        behavior: "smooth"
-    });
+    var answer = answers[question] || 'I\'m not sure about that. Please ask another safety question!';
+    addBotMessage(answer);
 }

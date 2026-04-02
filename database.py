@@ -63,11 +63,16 @@ def init_db():
 
     # Safe migrations — add missing columns to existing DB
     safe_migrations = [
-        "ALTER TABLE crimes ADD COLUMN attachments TEXT DEFAULT ''",
-        "ALTER TABLE users  ADD COLUMN address TEXT",
-        "ALTER TABLE users  ADD COLUMN emergency_contact_name TEXT",
-        "ALTER TABLE users  ADD COLUMN emergency_contact_phone TEXT",
-    ]
+    "ALTER TABLE crimes ADD COLUMN attachments TEXT DEFAULT ''",
+    "ALTER TABLE users  ADD COLUMN address TEXT",
+    "ALTER TABLE users  ADD COLUMN emergency_contact_name TEXT",
+    "ALTER TABLE users  ADD COLUMN emergency_contact_phone TEXT",
+    "ALTER TABLE users  ADD COLUMN alternate_phone TEXT",
+    "ALTER TABLE users  ADD COLUMN aadhar_number TEXT",
+    "ALTER TABLE users  ADD COLUMN current_address TEXT",
+    "ALTER TABLE users  ADD COLUMN permanent_address TEXT",
+    "ALTER TABLE users  ADD COLUMN contacts_json TEXT DEFAULT '[]'",   # NEW
+]
     for sql in safe_migrations:
         try:
             c.execute(sql)
