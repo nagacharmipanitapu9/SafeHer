@@ -57,6 +57,12 @@ Open:
 ```text
 http://127.0.0.1:5000
 ```
+## 🔑 Demo Credentials
+
+| Role  | Email                                         | Password |
+| ----- | --------------------------------------------- | -------- |
+| User  | [user@safeher.com](mailto:user@safeher.com)   | user123  |
+| Admin | [admin@safeher.com](mailto:admin@safeher.com) | admin123 |
 
 ---
 
