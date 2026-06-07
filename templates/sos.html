@@ -2,515 +2,390 @@
 {% block title %}SafeHer SOS{% endblock %}
 
 {% block extra_css %}
-
 <style>
-body{
-    background:#fdf2f8;
+body { background: #fdf2f8; }
+
+.sos-container {
+    max-width: 1000px;
+    margin: auto;
+    padding: 30px 20px 60px;
 }
 
-.sos-container{
-    max-width:1000px;
-    margin:auto;
-    padding:30px 20px 60px;
-}
-
-.sos-card{
-    background:white;
-    border-radius:28px;
-    padding:35px;
-    border:2px solid #fbcfe8;
+.sos-card {
+    background: white;
+    border-radius: 28px;
+    padding: 35px;
+    border: 2px solid #fbcfe8;
     box-shadow:
         0 10px 35px rgba(236,72,153,0.08),
         0 2px 10px rgba(0,0,0,0.05);
 }
 
-.sos-header{
-    margin-bottom:28px;
+/* ── Header ── */
+.sos-header { margin-bottom: 28px; }
+
+.sos-header h1 {
+    font-size: 1.8rem;
+    font-weight: 800;
+    margin-bottom: 8px;
 }
 
-.sos-header h1{
-    font-size:1.8rem;
-    font-weight:800;
-    margin-bottom:8px;
+.sos-header p {
+    color: #6b7280;
+    line-height: 1.7;
 }
 
-.sos-header p{
-    color:#6b7280;
-    line-height:1.7;
+/* ── Status box ── */
+.status-box {
+    display: flex;
+    gap: 14px;
+    align-items: flex-start;
+    padding: 18px;
+    border-radius: 18px;
+    background: #fdf2f8;
+    border: 1px solid #fbcfe8;
+    margin-bottom: 22px;
 }
 
-.status-box{
-    display:flex;
-    gap:14px;
-    align-items:flex-start;
-    padding:18px;
-    border-radius:18px;
-    background:#fdf2f8;
-    border:1px solid #fbcfe8;
-    margin-bottom:22px;
+.status-dot {
+    width: 14px;
+    height: 14px;
+    border-radius: 50%;
+    margin-top: 4px;
+    flex-shrink: 0;
 }
 
-.status-dot{
-    width:14px;
-    height:14px;
-    border-radius:50%;
-    margin-top:4px;
+.status-dot.active   { background: #22c55e; }
+.status-dot.inactive { background: #ef4444; }
+
+/* ── Contacts ── */
+.contacts-section {
+    margin: 25px 0 35px;
+    background: #fff1f7;
+    border: 1px solid #fbcfe8;
+    border-radius: 20px;
+    padding: 20px;
 }
 
-.status-dot.active{ background:#22c55e; }
-.status-dot.inactive{ background:#ef4444; }
-
-.contacts-section{
-    margin:25px 0 35px;
-    background:#fff1f7;
-    border:1px solid #fbcfe8;
-    border-radius:20px;
-    padding:20px;
+.contacts-section h4 {
+    text-align: center;
+    color: #be185d;
+    font-size: 1rem;
+    font-weight: 800;
+    margin-bottom: 18px;
+    letter-spacing: .5px;
 }
 
-.contacts-section h4{
-    text-align:center;
-    color:#be185d;
-    font-size:1rem;
-    font-weight:800;
-    margin-bottom:18px;
-    letter-spacing:0.5px;
+#contacts-pills {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+    gap: 12px;
 }
 
-#contacts-pills{
-    display:grid;
-    grid-template-columns:repeat(auto-fit,minmax(260px,1fr));
-    gap:12px;
+.contact-pill {
+    background: white;
+    border: 1px solid #fbcfe8;
+    border-radius: 14px;
+    padding: 14px 16px;
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    box-shadow: 0 4px 12px rgba(236,72,153,.08);
 }
 
-.contact-pill{
-    background:white;
-    border:1px solid #fbcfe8;
-    border-radius:14px;
-    padding:14px 16px;
-    display:flex;
-    flex-direction:column;
-    align-items:flex-start;
-    box-shadow:0 4px 12px rgba(236,72,153,.08);
+.contact-pill .contact-name  { font-weight: 700; color: #be185d; margin-bottom: 4px; }
+.contact-pill .contact-email { color: #6b7280; font-size: .85rem; word-break: break-all; }
+
+/* ── SOS Button area ── */
+.sos-area {
+    display: flex;
+    justify-content: center;
+    margin: 40px 0;
 }
 
-.contact-pill .name{
-    font-weight:700;
-    color:#be185d;
-    margin-bottom:4px;
+.sos-wrap {
+    position: relative;
+    width: 280px;
+    height: 280px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
 }
 
-.contact-pill .email{
-    color:#6b7280;
-    font-size:.85rem;
-    word-break:break-all;
+.outer-ring {
+    width: 260px;
+    height: 260px;
+    border-radius: 50%;
+    background: rgba(236,72,153,.08);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    animation: pulse 2.5s infinite;
 }
 
-/* ========================= */
-/* UPDATED SOS BUTTON (CODE 1 STYLE) */
-/* ========================= */
-
-.sos-area{
-    display:flex;
-    justify-content:center;
-    margin:40px 0;
+.middle-ring {
+    width: 210px;
+    height: 210px;
+    border-radius: 50%;
+    background: rgba(236,72,153,.12);
+    display: flex;
+    justify-content: center;
+    align-items: center;
 }
 
-.sos-wrap{
-    position:relative;
-    width:280px;
-    height:280px;
-    display:flex;
-    justify-content:center;
-    align-items:center;
-}
-
-/* outer glow ring */
-.outer-ring{
-    width:260px;
-    height:260px;
-    border-radius:50%;
-    background:rgba(236,72,153,.08);
-    display:flex;
-    justify-content:center;
-    align-items:center;
-    animation:pulse 2.5s infinite;
-}
-
-/* inner ring */
-.middle-ring{
-    width:210px;
-    height:210px;
-    border-radius:50%;
-    background:rgba(236,72,153,.12);
-    display:flex;
-    justify-content:center;
-    align-items:center;
-    position:relative;
-}
-
-/* progress circle */
-.hold-svg{
-    position:absolute;
-    width:230px;
-    height:230px;
-    transform:rotate(-90deg);
-    pointer-events:none;
-}
-
-.hold-svg circle{
-    fill:none;
-    stroke:#ec4899;
-    stroke-width:8;
-    stroke-dasharray:565;
-    stroke-dashoffset:565;
-    stroke-linecap:round;
-}
-
-/* MAIN SOS BUTTON (from Code 1) */
-#sos-button{
-    width:165px;
-    height:165px;
-    border:none;
-    border-radius:50%;
-    background:linear-gradient(145deg,#fb7185,#ec4899);
-    color:white;
-    font-size:2rem;
-    font-weight:900;
-    cursor:pointer;
-
-    display:flex;
-    flex-direction:column;
-    justify-content:center;
-    align-items:center;
-
+#sos-button {
+    width: 165px;
+    height: 165px;
+    border: none;
+    border-radius: 50%;
+    background: linear-gradient(145deg, #fb7185, #ec4899);
+    color: white;
+    font-size: 2rem;
+    font-weight: 900;
+    cursor: pointer;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    gap: 6px;
     box-shadow:
         0 15px 30px rgba(236,72,153,.35),
         inset 0 2px 10px rgba(255,255,255,.2);
+    transition: transform .1s, box-shadow .15s;
+    text-align: center;
+    line-height: 1.2;
 }
 
-#sos-button small{
-    font-size:.7rem;
-    margin-top:4px;
+#sos-button small {
+    font-size: .65rem;
+    font-weight: 600;
+    opacity: .85;
 }
 
-/* pulse animation */
-@keyframes pulse{
-    0%,100%{ transform:scale(1); }
-    50%{ transform:scale(1.05); }
+#sos-button:hover {
+    transform: scale(1.04);
+    box-shadow:
+        0 20px 40px rgba(236,72,153,.45),
+        inset 0 2px 10px rgba(255,255,255,.2);
 }
 
-.helpline-title{
-    margin-top:35px;
-    margin-bottom:18px;
-    color:#9ca3af;
-    font-size:0.85rem;
-    text-transform:uppercase;
-    font-weight:700;
-    text-align:center;
-    letter-spacing:1px;
+#sos-button:active  { transform: scale(0.97); }
+#sos-button:disabled {
+    opacity: .7;
+    cursor: not-allowed;
+    transform: none;
 }
 
-.emergency-numbers{
-    display:grid;
-    grid-template-columns:repeat(4,1fr);
-    gap:14px;
+@keyframes pulse {
+    0%, 100% { transform: scale(1); }
+    50%       { transform: scale(1.05); }
 }
 
-.emergency-card{
-    background:white;
-    border:1px solid #fbcfe8;
-    border-radius:18px;
-    padding:18px;
-    text-decoration:none;
-    text-align:center;
-    transition:.2s;
+/* ── SOS Result ── */
+#sos-status {
+    margin-top: 25px;
+    padding: 20px;
+    border-radius: 18px;
+    background: white;
+    border: 1px solid #fbcfe8;
+    box-shadow: 0 6px 18px rgba(0,0,0,.06);
+    display: none;
 }
 
-.emergency-card:hover{
-    transform:translateY(-4px);
+#sos-status.show { animation: fadeInUp .35s ease-out; }
+
+@keyframes fadeInUp {
+    from { opacity: 0; transform: translateY(10px); }
+    to   { opacity: 1; transform: translateY(0); }
 }
 
-.emergency-card .number{
-    display:block;
-    font-size:1.7rem;
-    font-weight:900;
-    color:#ec4899;
+.status-title {
+    font-size: 1rem;
+    font-weight: 800;
+    color: #be185d;
+    margin-bottom: 15px;
 }
 
-.emergency-card .label{
-    display:block;
-    margin-top:6px;
-    color:#6b7280;
-    font-size:0.8rem;
+.results-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+    gap: 15px;
+    margin-top: 15px;
 }
 
-@media(max-width:768px){
-    .emergency-numbers{
-        grid-template-columns:repeat(2,1fr);
-    }
-}
-/* ========================= */
-/* SOS RESULT / CONTACT RESPONSE CARD */
-/* ========================= */
-
-#sos-status{
-    margin-top:25px;
-    padding:20px;
-    border-radius:18px;
-    background:white;
-    border:1px solid #fbcfe8;
-    box-shadow:0 6px 18px rgba(0,0,0,0.06);
-    display:none; /* JS will show it */
+.result-row {
+    background: #fdf2f8;
+    border: 1px solid #fbcfe8;
+    border-radius: 16px;
+    padding: 16px;
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 8px;
+    transition: .2s ease;
 }
 
-/* Title inside SOS result */
-.sos-result-title{
-    font-size:0.9rem;
-    font-weight:800;
-    color:#be185d;
-    margin-bottom:10px;
-    text-transform:uppercase;
-    letter-spacing:0.5px;
+.result-row:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 16px rgba(236,72,153,.12);
 }
 
-/* success / info text */
-.sos-result-text{
-    color:#374151;
-    font-size:0.95rem;
-    line-height:1.6;
+.result-name  { font-size: .95rem; font-weight: 700; color: #be185d; }
+.result-phone { font-size: .82rem; color: #6b7280; }
+
+.email-badge {
+    display: inline-block;
+    margin-top: 4px;
+    padding: 5px 12px;
+    border-radius: 999px;
+    font-size: .75rem;
+    font-weight: 700;
 }
 
-/* small status badge */
-.sos-badge{
-    display:inline-block;
-    margin-top:10px;
-    padding:6px 12px;
-    font-size:0.75rem;
-    font-weight:700;
-    border-radius:999px;
-    background:#ec4899;
-    color:white;
+.email-badge.sent       { background: #dcfce7; color: #166534; }
+.email-badge.failed     { background: #fee2e2; color: #991b1b; }
+.email-badge.not-active { background: #fef3c7; color: #92400e; }
+
+.location-wrapper {
+    display: flex;
+    justify-content: center;
+    width: 100%;
+    margin-top: 20px;
 }
 
-.results-grid{
-    display:grid;
-    grid-template-columns:repeat(auto-fit,minmax(250px,1fr));
-    gap:15px;
-    margin-top:15px;
+.location-link {
+    display: inline-block;
+    padding: 12px 20px;
+    border-radius: 12px;
+    background: #ec4899;
+    color: white;
+    text-decoration: none;
+    font-weight: 700;
+    transition: .2s;
 }
 
-.result-row{
-    background:#fdf2f8;
-    border:1px solid #fbcfe8;
-    border-radius:16px;
-    padding:16px;
-    display:flex;
-    flex-direction:column;
-    align-items:flex-start;
-    justify-content:center;
-    transition:.2s ease;
+.location-link:hover { transform: translateY(-2px); opacity: .9; }
+
+.setup-note {
+    margin-top: 16px;
+    padding: 12px;
+    background: #fef3c7;
+    border: 1px solid #fde68a;
+    border-radius: 12px;
+    color: #92400e;
+    font-size: .85rem;
 }
 
-.result-row:hover{
-    transform:translateY(-2px);
-    box-shadow:0 6px 16px rgba(236,72,153,0.12);
-}
-/* animated entry */
-#sos-status.show{
-    animation:fadeInUp .35s ease-out;
+/* ── False Alarm ── */
+.alarm-wrap { margin: 24px 0; text-align: center; }
+
+.btn-alarm {
+    padding: 14px 32px;
+    background: #fff;
+    color: #e91e8c;
+    border: 2px solid #e91e8c;
+    border-radius: 12px;
+    font-size: 1rem;
+    font-weight: 700;
+    cursor: pointer;
+    transition: all .2s;
 }
 
-@keyframes fadeInUp{
-    from{
-        opacity:0;
-        transform:translateY(10px);
-    }
-    to{
-        opacity:1;
-        transform:translateY(0);
-    }
+.btn-alarm:hover { background: #fdf2f8; box-shadow: 0 4px 14px rgba(233,30,140,.2); }
+
+.btn-alarm.ringing {
+    background: #dc2626;
+    color: #fff;
+    border-color: #dc2626;
+    animation: alarmPulse .8s infinite;
+    box-shadow: 0 0 24px rgba(220,38,38,.5);
 }
 
-.location-wrapper{
-    display:flex;
-    justify-content:center;
-    align-items:center;
-    width:100%;
-    margin-top:20px;
+@keyframes alarmPulse {
+    0%   { transform: scale(1);    box-shadow: 0 0 24px rgba(220,38,38,.5); }
+    50%  { transform: scale(1.05); box-shadow: 0 0 40px rgba(220,38,38,.8); }
+    100% { transform: scale(1);    box-shadow: 0 0 24px rgba(220,38,38,.5); }
 }
 
-.location-link{
-    display:inline-block;
-    padding:12px 20px;
-    border-radius:12px;
-    background:#ec4899;
-    color:white;
-    text-decoration:none;
-    font-weight:700;
-    transition:.2s;
+.alarm-status {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+    margin-top: 12px;
+    padding: 10px 18px;
+    background: #fef2f2;
+    border: 1px solid #fecaca;
+    border-radius: 10px;
+    color: #dc2626;
+    font-weight: 600;
+    font-size: .88rem;
 }
 
-.location-link:hover{
-    transform:translateY(-2px);
-    opacity:.9;
-}
-/* optional list style for contacts if you render them inside result */
-/* Contacts shown after SOS is sent */
-
-.sos-contact-list{
-    margin-top:15px;
-    display:grid;
-    gap:10px;
+.alarm-pulse {
+    width: 12px; height: 12px;
+    border-radius: 50%;
+    background: #dc2626;
+    animation: blink .6s infinite;
+    flex-shrink: 0;
 }
 
-.sos-contact-card{
-    display:flex;
-    align-items:center;
-    justify-content:space-between;
-    padding:12px 16px;
-    background:#fdf2f8;
-    border:1px solid #fbcfe8;
-    border-radius:14px;
-    transition:0.2s;
+@keyframes blink {
+    0%, 100% { opacity: 1; }
+    50%       { opacity: 0; }
 }
 
-.sos-contact-card:hover{
-    transform:translateY(-2px);
-    box-shadow:0 4px 12px rgba(236,72,153,0.12);
+/* ── Helplines ── */
+.helpline-title {
+    margin-top: 35px;
+    margin-bottom: 18px;
+    color: #9ca3af;
+    font-size: .85rem;
+    text-transform: uppercase;
+    font-weight: 700;
+    text-align: center;
+    letter-spacing: 1px;
 }
 
-.contact-info{
-    display:flex;
-    flex-direction:column;
+.emergency-numbers {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 14px;
 }
 
-.contact-name{
-    font-weight:700;
-    color:#be185d;
-    font-size:0.95rem;
+.emergency-card {
+    background: white;
+    border: 1px solid #fbcfe8;
+    border-radius: 18px;
+    padding: 18px;
+    text-decoration: none;
+    text-align: center;
+    transition: .2s;
 }
 
-.contact-email{
-    font-size:0.82rem;
-    color:#6b7280;
-}
+.emergency-card:hover { transform: translateY(-4px); }
+.emergency-card .number { display: block; font-size: 1.7rem; font-weight: 900; color: #ec4899; }
+.emergency-card .label  { display: block; margin-top: 6px; color: #6b7280; font-size: .8rem; }
 
-.contact-status{
-    background:#dcfce7;
-    color:#15803d;
-    padding:6px 12px;
-    border-radius:999px;
-    font-size:0.75rem;
-    font-weight:700;
+@media(max-width: 768px) {
+    .emergency-numbers { grid-template-columns: repeat(2, 1fr); }
 }
-/* ========================= */
-/* SOS RESULT CONTACT CARDS */
-/* ========================= */
-
-.result-row{
-    background:#fdf2f8;
-    border:1px solid #fbcfe8;
-    border-radius:16px;
-    padding:16px;
-    display:flex;
-    flex-direction:column;
-    align-items:flex-start;
-    gap:8px;
-    margin-top:0;
-}
-
-.result-row:hover{
-    transform:translateY(-2px);
-    box-shadow:0 6px 16px rgba(236,72,153,0.12);
-}
-
-.result-name{
-    font-size:0.95rem;
-    font-weight:700;
-    color:#be185d;
-    margin-bottom:4px;
-}
-
-.result-phone{
-    font-size:0.82rem;
-    color:#6b7280;
-}
-
-.email-badge{
-    display:inline-block;
-    margin-top:8px;
-    padding:6px 12px;
-    border-radius:999px;
-    font-size:0.75rem;
-    font-weight:700;
-}
-
-/* Success */
-.email-badge.sent{
-    background:#dcfce7;
-    color:#166534;
-}
-
-/* Failed */
-.email-badge.failed{
-    background:#fee2e2;
-    color:#991b1b;
-}
-
-/* Email not configured */
-.email-badge.not-active{
-    background:#fef3c7;
-    color:#92400e;
-}
-
-.status-title{
-    font-size:1rem;
-    font-weight:800;
-    color:#be185d;
-    margin-bottom:15px;
-}
-
-.setup-note{
-    margin-top:16px;
-    padding:12px;
-    background:#fef3c7;
-    border:1px solid #fde68a;
-    border-radius:12px;
-    color:#92400e;
-    font-size:0.85rem;
-}
-.results-grid{
-    display:grid;
-    grid-template-columns:repeat(auto-fit,minmax(280px,1fr));
-    gap:15px;
-    margin-top:15px;
-}
-
 </style>
-
 {% endblock %}
 
 {% block content %}
-
 <div class="sos-container">
-    <!-- Header -->
-        <div class="sos-header">
-            <h1>Emergency SOS 🚨 </h1>
-            <p>
-                Hold the SOS button for 2 seconds.
-                Your live location and emergency alert will be emailed instantly
-                to all emergency contacts.
-            </p>
-        </div>
+
+    <div class="sos-header">
+        <h1>Emergency SOS 🚨</h1>
+        <p>Tap the SOS button once — your live location and emergency alert
+           will be emailed instantly to all your emergency contacts.</p>
+    </div>
 
     <div class="sos-card">
 
-        
-
-        <!-- Email Status -->
+        <!-- Email status -->
         <div class="status-box">
-
             {% if email_enabled %}
                 <div class="status-dot active"></div>
                 <div>
@@ -524,91 +399,74 @@ body{
                     <p>Configure Gmail App Password in sos.py to enable emergency email alerts.</p>
                 </div>
             {% endif %}
-
         </div>
 
-        <!-- Contacts -->
-         <div id="no-contacts-warn" style="display:none;" class="status-box">
+        <!-- No contacts warning -->
+        <div id="no-contacts-warn" style="display:none;" class="status-box">
             <div class="status-dot inactive"></div>
             <div>
                 <h3>No Emergency Contacts Found</h3>
-                <p>Please add emergency contacts from your profile page.</p>
+                <p>Please <a href="/auth/profile" style="color:#e91e8c;font-weight:700;">add emergency contacts</a> from your profile page.</p>
             </div>
         </div>
-        <!-- Emergency Contacts Display -->
+
+        <!-- Contacts preview -->
         <div class="contacts-section" id="contacts-preview">
             <h4>Your Emergency Contacts</h4>
             <div id="contacts-pills"></div>
         </div>
 
-        <!-- ========================= -->
-        <!-- SOS BUTTON (UPDATED STYLE) -->
-        <!-- ========================= -->
-
+        <!-- SOS Button -->
         <div class="sos-area">
-
             <div class="sos-wrap">
-
                 <div class="outer-ring">
                     <div class="middle-ring">
-
-                        <svg class="hold-svg" viewBox="0 0 200 200">
-                            <circle
-                                cx="100"
-                                cy="100"
-                                r="90"
-                                id="progress-ring">
-                            </circle>
-                        </svg>
-
                         <button id="sos-button">
                             SOS
-                            <small>HOLD 2s</small>
+                            <small>Tap to Send Alert</small>
                         </button>
-
                     </div>
                 </div>
-
             </div>
-
         </div>
 
-        <!-- RESULT -->
+        <!-- Result -->
         <div id="sos-status"></div>
 
-        <!-- HELPLINES -->
-        <div class="helpline-title">
-            Emergency Helplines
+        <!-- False Alarm -->
+        <div class="alarm-wrap" id="alarmWrap">
+            <button class="btn-alarm" id="alarmBtn" onclick="toggleAlarm()">
+                🔔 Start False Alarm
+            </button>
+            <div class="alarm-status" id="alarmStatus" style="display:none;">
+                <div class="alarm-pulse"></div>
+                <span>🚨 ALARM RINGING — Tap to Stop</span>
+            </div>
         </div>
 
+        <!-- Helplines -->
+        <div class="helpline-title">Emergency Helplines</div>
         <div class="emergency-numbers">
-
             <a href="tel:100" class="emergency-card">
                 <span class="number">100</span>
                 <span class="label">Police</span>
             </a>
-
             <a href="tel:108" class="emergency-card">
                 <span class="number">108</span>
                 <span class="label">Ambulance</span>
             </a>
-
             <a href="tel:181" class="emergency-card">
                 <span class="number">181</span>
                 <span class="label">Women Help</span>
             </a>
-
             <a href="tel:112" class="emergency-card">
                 <span class="number">112</span>
                 <span class="label">Emergency</span>
             </a>
-
         </div>
 
     </div>
-
 </div>
-
 {% endblock %}
 
 {% block extra_js %}

@@ -1,12 +1,6 @@
-var HOLD_MS   = 2000;
-var CIRCUMF   = 565;
-var holdTimer = null;
-var ringTimer = null;
-var holdStart = null;
-var ring      = document.getElementById('progress-ring');
-var sosBtn    = document.getElementById('sos-button');
+var sosBtn = document.getElementById('sos-button');
 
-// Load contacts preview
+// ── Load contacts preview ─────────────────────────────────
 window.addEventListener('load', function () {
     fetch('/sos/api/contacts')
         .then(function (r) { return r.json(); })
@@ -22,7 +16,7 @@ window.addEventListener('load', function () {
                 warn.style.display    = 'none';
                 preview.style.display = 'block';
                 pills.innerHTML = contacts.map(function (c) {
-                    var emailLine = c.email
+                    var emailLine  = c.email
                         ? '📧 ' + c.email
                         : '⚠️ No email — add one in Profile';
                     var emailColor = c.email ? '' : 'color:#ef4444;font-weight:600;';
@@ -36,42 +30,15 @@ window.addEventListener('load', function () {
         .catch(function () {});
 });
 
-// ── Hold logic ────────────────────────────────────────────
-function startHold() {
-    if (sosBtn.disabled) return;
-    holdStart = Date.now();
-    ringTimer = setInterval(animateRing, 30);
-    holdTimer = setTimeout(triggerSOS, HOLD_MS);
-}
-
-function cancelHold() {
-    clearTimeout(holdTimer);
-    clearInterval(ringTimer);
-    holdTimer = holdStart = ringTimer = null;
-    if (ring) ring.style.strokeDashoffset = CIRCUMF;
-}
-
-function animateRing() {
-    if (!holdStart) return;
-    var pct = Math.min((Date.now() - holdStart) / HOLD_MS, 1);
-    ring.style.strokeDashoffset = CIRCUMF * (1 - pct);
-}
-
-sosBtn.addEventListener('mousedown',  startHold);
-sosBtn.addEventListener('mouseup',    cancelHold);
-sosBtn.addEventListener('mouseleave', cancelHold);
-sosBtn.addEventListener('touchstart', function (e) {
-    e.preventDefault(); startHold();
-}, { passive: false });
-sosBtn.addEventListener('touchend', function (e) {
-    e.preventDefault(); cancelHold();
-}, { passive: false });
+// ── Instant click trigger (no hold needed) ────────────────
+sosBtn.addEventListener('click', function () {
+    triggerSOS();
+});
 
 // ── Trigger SOS ───────────────────────────────────────────
 function triggerSOS() {
-    clearInterval(ringTimer);
-    if (ring) ring.style.strokeDashoffset = 0;
-    sosBtn.disabled = true;
+    sosBtn.disabled    = true;
+    sosBtn.innerHTML = '⏳<br><small>Sending...</small>';
 
     if (!navigator.geolocation) {
         showResult('error', '⚠️ GPS not supported. Please call 112 directly.');
@@ -108,6 +75,7 @@ function triggerSOS() {
     );
 }
 
+// ── Render result ─────────────────────────────────────────
 function renderResult(data) {
     var el = document.getElementById('sos-status');
     el.style.display = 'block';
@@ -119,9 +87,9 @@ function renderResult(data) {
             + '<p style="color:#6b7280;font-size:0.88rem;">SOS was recorded but nobody was notified. '
             + '<a href="/auth/profile" style="color:#6d28d9;font-weight:600;">Add emergency contacts →</a></p>'
             + (data.maps_link
-                ? '<div class="location-wrapper">' +
-                '<a href="' + data.maps_link + '" target="_blank" class="location-link">🗺️ View Your Live Location</a>' +
-                '</div>'
+                ? '<div class="location-wrapper">'
+                  + '<a href="' + data.maps_link + '" target="_blank" class="location-link">🗺️ View Your Live Location</a>'
+                  + '</div>'
                 : '');
         resetBtn(3000);
         return;
@@ -129,33 +97,25 @@ function renderResult(data) {
 
     // Contact result rows
     var rows =
-    '<div class="results-grid">' +
-    (data.email_results || []).map(function (r) {
+        '<div class="results-grid">'
+        + (data.email_results || []).map(function (r) {
+            var sent       = r.sent;
+            var badgeClass = sent ? 'sent' : (data.email_enabled ? 'failed' : 'not-active');
+            var badgeText  = sent ? '✅ Email Sent' : (data.email_enabled ? '❌ Failed' : '⚙️ Not Active');
+            var errorNote  = (!sent && r.error)
+                ? '<div style="font-size:0.75rem;color:#ef4444;margin-top:3px;">' + r.error + '</div>'
+                : '';
+            return '<div class="result-row">'
+                + '<div class="result-name">👤 ' + r.name + '</div>'
+                + '<div class="result-phone">📧 ' + r.email + '</div>'
+                + errorNote
+                + '<span class="email-badge ' + badgeClass + '">' + badgeText + '</span>'
+                + '</div>';
+        }).join('')
+        + '</div>';
 
-        var sent = r.sent;
-        var badgeClass = sent ? 'sent' : (data.email_enabled ? 'failed' : 'not-active');
-        var badgeText  = sent ? '✅ Email Sent' : (data.email_enabled ? '❌ Failed' : '⚙️ Not Active');
-
-        var errorNote = (!sent && r.error)
-            ? '<div style="font-size:0.75rem;color:#ef4444;margin-top:3px;">' + r.error + '</div>'
-            : '';
-
-        return `
-            <div class="result-row">
-                <div class="result-name">👤 ${r.name}</div>
-                <div class="result-phone">📧 ${r.email}</div>
-                ${errorNote}
-                <span class="email-badge ${badgeClass}">
-                    ${badgeText}
-                </span>
-            </div>
-        `;
-    }).join('') +
-    '</div>';
-
-    var sentCount   = (data.sent_to   || []).length;
-    var failedCount = (data.failed    || []).length;
-    var totalCount  = (data.contacts  || []).length;
+    var sentCount  = (data.sent_to  || []).length;
+    var totalCount = (data.contacts || []).length;
 
     var titleIcon = sentCount > 0 ? '🚨' : '⚠️';
     var titleText = sentCount > 0
@@ -175,33 +135,115 @@ function renderResult(data) {
         '<div class="status-title">' + titleIcon + ' ' + titleText + '</div>'
         + rows
         + (data.maps_link
-            ? '<div class="location-wrapper">' +
-            '<a href="' + data.maps_link + '" target="_blank" class="location-link">🗺️ View Your Live Location</a>' +
-            '</div>'
+            ? '<div class="location-wrapper">'
+              + '<a href="' + data.maps_link + '" target="_blank" class="location-link">🗺️ View Your Live Location</a>'
+              + '</div>'
             : '')
         + setupNote;
 
     if (sentCount > 0) {
         showToast('🚨 Email sent to ' + sentCount + ' contact(s)!', 'success');
+    } else if (!data.email_enabled) {
+        showToast('SOS recorded. Configure Gmail in sos.py to enable email.', 'info');
     } else {
-        showToast('SOS recorded. Use WhatsApp links to alert contacts.', 'info');
+        showToast('SOS recorded. Make sure contacts have email addresses saved.', 'error');
     }
 
     resetBtn(5000);
 }
 
+// ── Helpers ───────────────────────────────────────────────
 function showResult(type, msg) {
     var el = document.getElementById('sos-status');
     el.style.display = 'block';
-    var bg = type === 'error' ? '#fee2e2' : type === 'loading' ? '#dbeafe' : '#d1fae5';
-    var fg = type === 'error' ? '#991b1b' : type === 'loading' ? '#1e40af' : '#065f46';
+    var bg = type === 'error'   ? '#fee2e2'
+           : type === 'loading' ? '#dbeafe'
+           :                      '#d1fae5';
+    var fg = type === 'error'   ? '#991b1b'
+           : type === 'loading' ? '#1e40af'
+           :                      '#065f46';
     el.innerHTML = '<div style="background:' + bg + ';color:' + fg
         + ';padding:14px 16px;border-radius:10px;font-size:0.9rem;">' + msg + '</div>';
 }
 
 function resetBtn(delay) {
     setTimeout(function () {
-        sosBtn.disabled = false;
-        if (ring) ring.style.strokeDashoffset = CIRCUMF;
+        sosBtn.disabled   = false;
+        sosBtn.innerHTML  = '🚨 SOS<br><small>Tap to Send Alert</small>';
     }, delay || 3000);
 }
+
+// ── False Alarm Siren ─────────────────────────────────────
+let alarmCtx      = null;
+let alarmNodes    = [];
+let alarmOn       = false;
+let alarmInterval = null;
+
+function buildSiren(ctx) {
+    const osc  = ctx.createOscillator();
+    const gain = ctx.createGain();
+    osc.type = 'sawtooth';
+    gain.gain.value = 0.5;
+    osc.connect(gain);
+    gain.connect(ctx.destination);
+    osc.start();
+
+    /* Slow sweep: rise from 200Hz to 900Hz over 3s, drop back over 3s */
+    function sweep() {
+        osc.frequency.setTargetAtTime(900, ctx.currentTime,       1.2);
+        osc.frequency.setTargetAtTime(200, ctx.currentTime + 3.0, 1.2);
+    }
+    sweep();
+    const interval = setInterval(sweep, 6000);
+    osc._interval = interval;
+
+    return [osc, gain];
+}
+
+function stopSiren() {
+    alarmNodes.forEach(n => {
+        try {
+            if (n._interval) clearInterval(n._interval);
+            n.stop(); n.disconnect();
+        } catch(e) {}
+    });
+    alarmNodes = [];
+    if (alarmCtx) { alarmCtx.close(); alarmCtx = null; }
+    clearInterval(alarmInterval);
+}
+
+function toggleAlarm() {
+    const btn    = document.getElementById('alarmBtn');
+    const status = document.getElementById('alarmStatus');
+
+    if (!alarmOn) {
+        alarmOn    = true;
+        alarmCtx   = new (window.AudioContext || window.webkitAudioContext)();
+        alarmNodes = buildSiren(alarmCtx);
+
+        btn.textContent = '🔕 Stop Alarm';
+        btn.classList.add('ringing');
+        status.style.display = 'flex';
+
+        /* Restart every 25s to keep alive on mobile */
+        alarmInterval = setInterval(() => {
+            stopSiren();
+            if (alarmOn) {
+                alarmCtx   = new (window.AudioContext || window.webkitAudioContext)();
+                alarmNodes = buildSiren(alarmCtx);
+            }
+        }, 25000);
+
+    } else {
+        alarmOn = false;
+        stopSiren();
+        btn.textContent = '🔔 Start False Alarm';
+        btn.classList.remove('ringing');
+        status.style.display = 'none';
+    }
+}
+
+/* Stop alarm on page leave */
+window.addEventListener('beforeunload', () => {
+    if (alarmOn) stopSiren();
+});
