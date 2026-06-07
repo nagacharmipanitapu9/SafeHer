@@ -169,7 +169,7 @@ function showResult(type, msg) {
 function resetBtn(delay) {
     setTimeout(function () {
         sosBtn.disabled   = false;
-        sosBtn.innerHTML  = '🚨 SOS<br><small>Tap to Send Alert</small>';
+        sosBtn.innerHTML  = 'SOS<br><small>Tap to Send Alert</small>';
     }, delay || 3000);
 }
 
