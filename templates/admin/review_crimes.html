@@ -3,7 +3,7 @@
 
 {% block extra_css %}
 <style>
-    .admin-page { max-width: 1150px; margin: 0 auto; padding: 36px 20px; }
+    .admin-page { max-width: 1200px; margin: 0 auto; padding: 36px 20px; }
     .admin-page h1 { font-size: 1.8rem; font-weight: 800; margin-bottom: 4px; }
     .subtitle { color: #6b7280; margin-bottom: 20px; font-size: 0.95rem; }
 
@@ -13,15 +13,21 @@
         background:#fff; font-size:0.85rem; font-weight:600;
         cursor:pointer; transition:all 0.2s; color:#374151;
     }
-    .filter-tab.active { background:#6d28d9; color:#fff; border-color:#6d28d9; }
-    .filter-tab:hover:not(.active) { border-color:#7c3aed; color:#6d28d9; }
+    .filter-tab.active { background:#e91e8c; color:#fff; border-color:#e91e8c; }
+    .filter-tab:hover:not(.active) { border-color:#e91e8c; color:#e91e8c; }
 
-    .summary-row { display:flex; gap:8px; margin-bottom:16px; flex-wrap:wrap; font-size:0.84rem; color:#6b7280; }
+    .summary-row { font-size:0.84rem; color:#6b7280; margin-bottom:14px; }
     .summary-row strong { color:#1f2937; }
 
-    .table-wrap { background:#fff; border-radius:14px; box-shadow:0 2px 12px rgba(0,0,0,0.07); overflow-x:auto; }
-    table { width:100%; border-collapse:collapse; font-size:0.85rem; min-width:900px; }
-    th { background:#f9fafb; padding:12px 14px; text-align:left; font-weight:600; color:#374151; border-bottom:1.5px solid #f3f4f6; }
+    .table-wrap {
+        background:#fff; border-radius:14px;
+        box-shadow:0 2px 12px rgba(0,0,0,0.07); overflow-x:auto;
+    }
+    table { width:100%; border-collapse:collapse; font-size:0.85rem; min-width:800px; }
+    th {
+        background:#f9fafb; padding:12px 14px; text-align:left;
+        font-weight:600; color:#374151; border-bottom:1.5px solid #f3f4f6;
+    }
     td { padding:11px 14px; border-bottom:1px solid #f9fafb; color:#374151; vertical-align:middle; }
     tr:last-child td { border-bottom:none; }
     tr:hover td { background:#fafafe; }
@@ -39,45 +45,179 @@
     .status-select {
         border:1.5px solid #d1d5db; border-radius:6px; padding:6px 10px;
         font-size:0.8rem; font-weight:600; cursor:pointer;
-        background:#fff; color:#374151; min-width:155px; transition:border-color 0.2s;
+        background:#fff; color:#374151; min-width:150px; transition:border-color 0.2s;
     }
-    .status-select:focus { outline:none; border-color:#7c3aed; }
+    .status-select:focus { outline:none; border-color:#e91e8c; }
 
-    .desc-cell { max-width:200px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; color:#6b7280; font-size:0.82rem; cursor:help; }
+    .desc-cell {
+        max-width:160px; overflow:hidden;
+        text-overflow:ellipsis; white-space:nowrap;
+        color:#6b7280; font-size:0.82rem;
+    }
     .empty-state { text-align:center; padding:48px; color:#9ca3af; }
 
-    /* Detail expand row */
-    .detail-row td { background:#faf5ff; padding:16px 20px; }
-    .detail-grid { display:grid; grid-template-columns:1fr 1fr; gap:12px; font-size:0.86rem; }
-    .detail-item strong { display:block; color:#6d28d9; font-size:0.75rem; text-transform:uppercase; letter-spacing:0.5px; margin-bottom:3px; }
-    .btn-expand { background:none; border:none; cursor:pointer; color:#6d28d9; font-size:1rem; padding:0 4px; }
+    /* View button */
+    .btn-view {
+        display:inline-flex; align-items:center; gap:5px;
+        background:#f06ab3; color:#fffff0; border:none;
+        padding:6px 12px; border-radius:7px; font-size:0.8rem;
+        font-weight:600; cursor:pointer; transition:all 0.15s;
+        white-space:nowrap;
+    }
+    .btn-view:hover { background:#e91e8c; color:#fff; }
+
+    /* ── Crime Detail Modal ── */
+    .modal-overlay {
+        display:none; position:fixed; inset:0;
+        background:rgba(0,0,0,0.6); z-index:9000;
+        align-items:center; justify-content:center;
+        padding:20px; backdrop-filter:blur(3px);
+    }
+    .modal-overlay.open { display:flex; }
+
+    .modal-box {
+        background:#fff; border-radius:20px; width:100%;
+        max-width:780px; max-height:90vh; overflow-y:auto;
+        box-shadow:0 20px 60px rgba(0,0,0,0.3);
+        animation:modalIn 0.25s ease;
+    }
+    @keyframes modalIn {
+        from { transform:scale(0.92) translateY(20px); opacity:0; }
+        to   { transform:scale(1) translateY(0);       opacity:1; }
+    }
+
+    .modal-header {
+        padding:20px 24px 16px;
+        border-bottom:1.5px solid #f3f4f6;
+        display:flex; align-items:center;
+        justify-content:space-between; gap:12px;
+        position:sticky; top:0; background:#fff; z-index:10;
+        border-radius:20px 20px 0 0;
+    }
+    .modal-title { font-size:1.15rem; font-weight:800; color:#1f2937; }
+    .modal-close {
+        width:32px; height:32px; border-radius:50%;
+        background:#f3f4f6; border:none; cursor:pointer;
+        font-size:1.1rem; display:flex; align-items:center;
+        justify-content:center; transition:background 0.2s; flex-shrink:0;
+    }
+    .modal-close:hover { background:#e5e7eb; }
+
+    .modal-body { padding:24px; }
+
+    /* Detail sections */
+    .detail-section {
+        margin-bottom:22px;
+        padding-bottom:22px;
+        border-bottom:1.5px solid #f3f4f6;
+    }
+    .detail-section:last-child { border-bottom:none; margin-bottom:0; padding-bottom:0; }
+    .detail-section-title {
+        font-size:0.75rem; font-weight:700; color:#9ca3af;
+        text-transform:uppercase; letter-spacing:0.5px; margin-bottom:12px;
+    }
+    .detail-grid { display:grid; grid-template-columns:1fr 1fr; gap:14px; }
+    @media(max-width:560px) { .detail-grid { grid-template-columns:1fr; } }
+
+    .detail-field { }
+    .detail-label {
+        font-size:0.75rem; font-weight:600; color:#e91e8c;
+        text-transform:uppercase; letter-spacing:0.4px; margin-bottom:4px;
+    }
+    .detail-value {
+        font-size:0.9rem; color:#1f2937; font-weight:500;
+        background:#f9fafb; padding:8px 12px; border-radius:8px;
+        border:1px solid #f3f4f6;
+    }
+    .detail-value.description {
+        white-space:pre-wrap; line-height:1.6; font-weight:400;
+    }
+
+    /* Attachments */
+    .attachments-grid {
+        display:flex; flex-wrap:wrap; gap:10px; margin-top:4px;
+    }
+    .attach-thumb {
+        width:100px; height:100px; border-radius:10px;
+        object-fit:cover; cursor:pointer; border:2px solid #e5e7eb;
+        transition:all 0.2s;
+    }
+    .attach-thumb:hover {
+        border-color:#e91e8c;
+        transform:scale(1.04);
+        box-shadow:0 4px 12px rgba(233,30,140,0.2);
+    }
+    .audio-card {
+        background:#f5f3ff; border:1.5px solid #c4b5fd;
+        border-radius:10px; padding:12px 14px;
+        font-size:0.82rem; color:#f06ab3;
+    }
+    .no-attach {
+        color:#9ca3af; font-size:0.85rem;
+        font-style:italic; padding:8px 0;
+    }
+
+    /* Status change row inside modal */
+    .modal-status-row {
+        display:flex; align-items:center; gap:12px; flex-wrap:wrap;
+    }
+
+    /* ── Photo Lightbox ── */
+    .lightbox {
+        display:none; position:fixed; inset:0;
+        background:rgba(0,0,0,0.92); z-index:9999;
+        align-items:center; justify-content:center;
+        cursor:zoom-out;
+    }
+    .lightbox.open { display:flex; }
+    .lightbox img {
+        max-width:92vw; max-height:92vh;
+        border-radius:10px; box-shadow:0 8px 40px rgba(0,0,0,0.6);
+        animation:fadeInImg 0.2s ease;
+    }
+    @keyframes fadeInImg { from{opacity:0;transform:scale(0.95)} to{opacity:1;transform:scale(1)} }
+    .lightbox-close {
+        position:fixed; top:18px; right:20px;
+        background:rgba(255,255,255,0.15); color:#fff;
+        border:none; border-radius:50%; width:40px; height:40px;
+        font-size:1.3rem; cursor:pointer; display:flex;
+        align-items:center; justify-content:center;
+        transition:background 0.2s;
+    }
+    .lightbox-close:hover { background:rgba(255,255,255,0.25); }
+    .lightbox-caption {
+        position:fixed; bottom:20px; left:50%;
+        transform:translateX(-50%);
+        background:rgba(0,0,0,0.6); color:#fff;
+        padding:6px 16px; border-radius:20px;
+        font-size:0.82rem;
+    }
 </style>
 {% endblock %}
 
 {% block content %}
 <div class="admin-page">
     <h1>Review Crime Reports 📋</h1>
-    <p class="subtitle">View full details and manage status of all submitted reports</p>
+    <p class="subtitle">View full details and manage the status of all submitted reports</p>
 
     <div class="filter-tabs">
-        <button class="filter-tab active" onclick="filterTable('all', this)">All ({{ crimes|length }})</button>
-        <button class="filter-tab" onclick="filterTable('pending', this)">⏳ Pending</button>
-        <button class="filter-tab" onclick="filterTable('investigating', this)">🔍 Investigating</button>
-        <button class="filter-tab" onclick="filterTable('resolved', this)">✔️ Resolved</button>
-        <button class="filter-tab" onclick="filterTable('rejected', this)">❌ Rejected</button>
+        <button class="filter-tab active" data-filter="all"       onclick="filterTable('all',this)">All ({{ crimes|length }})</button>
+        <button class="filter-tab"        data-filter="pending"       onclick="filterTable('pending',this)">⏳ Pending</button>
+        <button class="filter-tab"        data-filter="investigating" onclick="filterTable('investigating',this)">🔍 Investigating</button>
+        <button class="filter-tab"        data-filter="approved"      onclick="filterTable('approved',this)">✅ Approved</button>
+        <button class="filter-tab"        data-filter="resolved"      onclick="filterTable('resolved',this)">✔️ Resolved</button>
+        <button class="filter-tab"        data-filter="rejected"      onclick="filterTable('rejected',this)">❌ Rejected</button>
     </div>
 
     <div class="summary-row">
-        Showing <strong id="visible-count">{{ crimes|length }}</strong>
-        of <strong>{{ crimes|length }}</strong> reports.
-        <span style="margin-left:8px;">Click <strong>▶</strong> to expand report details.</span>
+        Showing <strong id="visible-count">{{ crimes|length }}</strong> of
+        <strong>{{ crimes|length }}</strong> reports
     </div>
 
     <div class="table-wrap">
         <table>
             <thead>
                 <tr>
-                    <th></th>
                     <th>#</th>
                     <th>Reporter</th>
                     <th>Type</th>
@@ -87,77 +227,48 @@
                     <th>Date</th>
                     <th>Status</th>
                     <th>Change Status</th>
+                    <th>Action</th>
                 </tr>
             </thead>
             <tbody id="crimes-tbody">
                 {% for crime in crimes %}
                 <tr id="crime-{{ crime.id }}" data-status="{{ crime.status }}">
-                    <td>
-                        <button class="btn-expand" onclick="toggleDetail({{ crime.id }})" title="Expand details">▶</button>
-                    </td>
                     <td><strong>#{{ crime.id }}</strong></td>
                     <td>{{ crime.reporter_name }}</td>
-                    <td style="text-transform:capitalize;font-weight:600;">{{ crime.crime_type.replace('_', ' ') }}</td>
-                    <td class="desc-cell" title="{{ crime.description }}">{{ crime.description or '—' }}</td>
+                    <td style="text-transform:capitalize;font-weight:600;">
+                        {{ crime.crime_type.replace('_',' ') }}
+                    </td>
+                    <td class="desc-cell" title="{{ crime.description }}">
+                        {{ crime.description or '—' }}
+                    </td>
                     <td><span class="badge badge-{{ crime.severity }}">{{ crime.severity }}</span></td>
-                    <td>{{ crime.location_name or 'N/A' }}</td>
-                    <td>{{ crime.created_at.split(' ')[0] if crime.created_at else '—' }}</td>
+                    <td style="font-size:0.82rem;">{{ crime.location_name or 'N/A' }}</td>
+                    <td style="font-size:0.82rem;">
+                        {{ crime.created_at.split(' ')[0] if crime.created_at else '—' }}
+                    </td>
                     <td>
                         <span class="badge badge-{{ crime.status }}" id="badge-{{ crime.id }}">
                             {{ crime.status }}
                         </span>
                     </td>
                     <td>
-                        <select class="status-select" id="select-{{ crime.id }}"
-                                onchange="changeStatus({{ crime.id }}, this.value)">
+                        <select class="status-select"
+                                id="select-{{ crime.id }}"
+                                data-id="{{ crime.id }}"
+                                onchange="changeStatus(this.dataset.id, this.value)">
                             <option value="pending"       {% if crime.status=='pending'       %}selected{% endif %}>⏳ Pending</option>
                             <option value="investigating" {% if crime.status=='investigating' %}selected{% endif %}>🔍 Investigating</option>
+                            <option value="approved"      {% if crime.status=='approved'      %}selected{% endif %}>✅ Approved</option>
                             <option value="resolved"      {% if crime.status=='resolved'      %}selected{% endif %}>✔️ Resolved</option>
                             <option value="rejected"      {% if crime.status=='rejected'      %}selected{% endif %}>❌ Rejected</option>
                         </select>
                     </td>
-                </tr>
-                <!-- Hidden detail row -->
-                <tr id="detail-{{ crime.id }}" class="detail-row" style="display:none;">
-                    <td colspan="10">
-                        <div class="detail-grid">
-                            <div class="detail-item">
-                                <strong>Full Description</strong>
-                                {{ crime.description or 'No description provided.' }}
-                            </div>
-                            <div class="detail-item">
-                                <strong>Exact Location</strong>
-                                {{ crime.location_name or 'N/A' }}<br>
-                                <span style="font-family:monospace;font-size:0.8rem;color:#9ca3af;">
-                                    Lat: {{ crime.latitude }}, Lng: {{ crime.longitude }}
-                                </span>
-                            </div>
-                            <div class="detail-item">
-                                <strong>Reporter</strong>
-                                {{ crime.reporter_name }} (User #{{ crime.user_id }})
-                            </div>
-                            <div class="detail-item">
-                                <strong>Submitted At</strong>
-                                {{ crime.created_at or '—' }}
-                            </div>
-                            {% if crime.attachments %}
-                            <div class="detail-item" style="grid-column:span 2;">
-                                <strong>Attachments</strong>
-                                {% for file in crime.attachments.split(',') %}
-                                    {% if file.strip() %}
-                                        {% set ext = file.strip().rsplit('.', 1)[-1].lower() %}
-                                        {% if ext in ['jpg','jpeg','png','gif'] %}
-                                            <img src="/static/uploads/{{ file.strip() }}"
-                                                 style="height:80px;border-radius:6px;margin-right:8px;border:1px solid #e5e7eb;">
-                                        {% else %}
-                                            <a href="/static/uploads/{{ file.strip() }}" target="_blank"
-                                               style="color:#6d28d9;">🎵 {{ file.strip() }}</a>
-                                        {% endif %}
-                                    {% endif %}
-                                {% endfor %}
-                            </div>
-                            {% endif %}
-                        </div>
+                    <td>
+                        <button class="btn-view"
+                                data-id="{{ crime.id }}"
+                                onclick="openCrimeModal(this.dataset.id)">
+                            View
+                        </button>
                     </td>
                 </tr>
                 {% else %}
@@ -170,20 +281,205 @@
     </div>
 </div>
 
+<!-- ── Crime Detail Modal ───────────────────────────────── -->
+<div class="modal-overlay" id="crimeModal" onclick="closeModalOutside(event)">
+    <div class="modal-box" id="crimeModalBox">
+        <div class="modal-header">
+            <div class="modal-title" id="modal-title">Crime Report Details</div>
+            <button class="modal-close" onclick="closeCrimeModal()">✕</button>
+        </div>
+        <div class="modal-body" id="modal-body">
+            <p style="text-align:center;color:#9ca3af;">Loading...</p>
+        </div>
+    </div>
+</div>
+
+<!-- ── Photo Lightbox ─────────────────────────────────── -->
+<div class="lightbox" id="lightbox" onclick="closeLightbox()">
+    <button class="lightbox-close" onclick="closeLightbox()">✕</button>
+    <img id="lightbox-img" src="" alt="Evidence photo">
+    <div class="lightbox-caption" id="lightbox-caption"></div>
+</div>
+
 <script>
-function toggleDetail(id) {
-    var detailRow = document.getElementById('detail-' + id);
-    var btn = document.querySelector('#crime-' + id + ' .btn-expand');
-    if (detailRow.style.display === 'none') {
-        detailRow.style.display = '';
-        btn.textContent = '▼';
-    } else {
-        detailRow.style.display = 'none';
-        btn.textContent = '▶';
+// Pre-load crime data into JS from Jinja
+var CRIMES = {
+    {% for crime in crimes %}
+    '{{ crime.id }}': {
+        id:           {{ crime.id }},
+        reporter:     '{{ crime.reporter_name | e }}',
+        user_id:      {{ crime.user_id }},
+        crime_type:   '{{ crime.crime_type | e }}',
+        description:  {{ crime.description | tojson if crime.description else '""' }},
+        severity:     '{{ crime.severity | e }}',
+        status:       '{{ crime.status | e }}',
+        location:     {{ crime.location_name | tojson if crime.location_name else '""' }},
+        latitude:     {{ crime.latitude }},
+        longitude:    {{ crime.longitude }},
+        created_at:   '{{ crime.created_at or "" }}',
+        attachments:  '{{ crime.attachments or "" }}'
+    }{% if not loop.last %},{% endif %}
+    {% endfor %}
+};
+
+// ── Open crime detail modal ───────────────────────────
+function openCrimeModal(id) {
+    var c = CRIMES[String(id)];
+    if (!c) return;
+
+    document.getElementById('modal-title').textContent =
+        'Crime Report #' + c.id + ' — ' + c.crime_type.replace(/_/g,' ').toUpperCase();
+
+    var mapsUrl = 'https://maps.google.com/?q=' + c.latitude + ',' + c.longitude;
+
+    // Build attachments HTML
+    var attachHtml = '';
+    if (c.attachments && c.attachments.trim()) {
+        var files = c.attachments.split(',').filter(function(f){ return f.trim(); });
+        if (files.length) {
+            attachHtml = '<div class="attachments-grid">';
+            files.forEach(function(fname, idx) {
+                fname = fname.trim();
+                var ext = fname.split('.').pop().toLowerCase();
+                if (['jpg','jpeg','png','gif','webp'].indexOf(ext) !== -1) {
+                    attachHtml += '<img src="/crime/uploads/' + fname + '" '
+                        + 'class="attach-thumb" '
+                        + 'onclick="openLightbox(\'/crime/uploads/' + fname + '\', \'Photo ' + (idx+1) + '\')" '
+                        + 'alt="Evidence ' + (idx+1) + '" '
+                        + 'onerror="this.parentNode.innerHTML+=\'<div class=no-attach>Image not found: ' + fname + '</div>\';this.remove();">';
+                } else if (['mp3','wav','m4a','ogg'].indexOf(ext) !== -1) {
+                    attachHtml += '<div class="audio-card">🎵 ' + fname
+                        + '<br><audio controls style="margin-top:6px;width:220px;">'
+                        + '<source src="/crime/uploads/' + fname + '"></audio></div>';
+                }
+            });
+            attachHtml += '</div>';
+        }
     }
+    if (!attachHtml) {
+        attachHtml = '<p class="no-attach">No files attached to this report.</p>';
+    }
+
+    // Status badge colours
+    var badgeMap = {
+        pending:'#fef3c7;color:#92400e', investigating:'#dbeafe;color:#1e40af',
+        approved:'#d1fae5;color:#065f46', resolved:'#ede9fe;color:#5b21b6',
+        rejected:'#fee2e2;color:#991b1b'
+    };
+    var sev = { high:'#fee2e2;color:#991b1b', medium:'#fef3c7;color:#92400e', low:'#d1fae5;color:#065f46' };
+    var bStyle = badgeMap[c.status]  || '#f3f4f6;color:#374151';
+    var sStyle = sev[c.severity]     || '#f3f4f6;color:#374151';
+
+    document.getElementById('modal-body').innerHTML =
+        // Overview section
+        '<div class="detail-section">'
+        + '<div class="detail-section-title">📋 Overview</div>'
+        + '<div class="detail-grid">'
+        +   '<div class="detail-field"><div class="detail-label">Crime Type</div>'
+        +     '<div class="detail-value" style="text-transform:capitalize;">'
+        +       c.crime_type.replace(/_/g,' ') + '</div></div>'
+        +   '<div class="detail-field"><div class="detail-label">Severity</div>'
+        +     '<div class="detail-value"><span style="background:' + sStyle + ';padding:3px 10px;border-radius:20px;font-size:0.8rem;font-weight:700;">'
+        +       c.severity.toUpperCase() + '</span></div></div>'
+        +   '<div class="detail-field"><div class="detail-label">Current Status</div>'
+        +     '<div class="detail-value"><span style="background:' + bStyle + ';padding:3px 10px;border-radius:20px;font-size:0.8rem;font-weight:700;">'
+        +       c.status + '</span></div></div>'
+        +   '<div class="detail-field"><div class="detail-label">Incident Date</div>'
+        +     '<div class="detail-value">🕐 ' + (c.created_at || '—') + '</div></div>'
+        + '</div></div>'
+
+        // Description
+        + '<div class="detail-section">'
+        + '<div class="detail-section-title">📝 Description</div>'
+        + '<div class="detail-value description">' + (c.description || 'No description provided.') + '</div>'
+        + '</div>'
+
+        // Location
+        + '<div class="detail-section">'
+        + '<div class="detail-section-title">📍 Location</div>'
+        + '<div class="detail-grid">'
+        +   '<div class="detail-field"><div class="detail-label">Place Name</div>'
+        +     '<div class="detail-value">' + (c.location || 'N/A') + '</div></div>'
+        +   '<div class="detail-field"><div class="detail-label">Coordinates</div>'
+        +     '<div class="detail-value" style="font-family:monospace;font-size:0.85rem;">'
+        +       c.latitude.toFixed(6) + ', ' + c.longitude.toFixed(6) + '</div></div>'
+        + '</div>'
+        + '<a href="' + mapsUrl + '" target="_blank" style="display:inline-flex;align-items:center;gap:6px;'
+        +   'background:#3b82f6;color:#fff;padding:8px 16px;border-radius:8px;font-size:0.84rem;'
+        +   'font-weight:600;text-decoration:none;margin-top:10px;">🗺️ Open in Google Maps</a>'
+        + '</div>'
+
+        // Attachments / Photos
+        + '<div class="detail-section">'
+        + '<div class="detail-section-title">📎 Evidence & Attachments</div>'
+        + attachHtml
+        + '</div>'
+
+        // Change status
+        + '<div class="detail-section">'
+        + '<div class="detail-section-title">⚙️ Change Status</div>'
+        + '<div class="modal-status-row">'
+        +   '<select class="status-select" id="modal-status-select-' + c.id + '" style="min-width:180px;">'
+        +     '<option value="pending"       ' + (c.status==='pending'       ?'selected':'') + '>⏳ Pending</option>'
+        +     '<option value="investigating" ' + (c.status==='investigating' ?'selected':'') + '>🔍 Investigating</option>'
+        +     '<option value="approved"      ' + (c.status==='approved'      ?'selected':'') + '>✅ Approved</option>'
+        +     '<option value="resolved"      ' + (c.status==='resolved'      ?'selected':'') + '>✔️ Resolved</option>'
+        +     '<option value="rejected"      ' + (c.status==='rejected'      ?'selected':'') + '>❌ Rejected</option>'
+        +   '</select>'
+        +   '<button onclick="changeStatusFromModal(' + c.id + ')" '
+        +     'style="padding:9px 20px;background:#6d28d9;color:#fff;border:none;border-radius:8px;'
+        +     'font-weight:600;cursor:pointer;font-size:0.88rem;">Update Status</button>'
+        + '</div>'
+        + '</div>';
+
+    document.getElementById('crimeModal').classList.add('open');
+    document.body.style.overflow = 'hidden';
 }
 
-function changeStatus(id, newStatus) {
+function closeCrimeModal() {
+    document.getElementById('crimeModal').classList.remove('open');
+    document.body.style.overflow = '';
+}
+
+function closeModalOutside(e) {
+    if (e.target === document.getElementById('crimeModal')) closeCrimeModal();
+}
+
+// Update status from inside modal
+function changeStatusFromModal(id) {
+    var sel = document.getElementById('modal-status-select-' + id);
+    if (!sel) return;
+    changeStatus(String(id), sel.value, function() {
+        // Update status display inside modal
+        var bMap = {
+            pending:'#fef3c7;color:#92400e', investigating:'#dbeafe;color:#1e40af',
+            approved:'#d1fae5;color:#065f46', resolved:'#ede9fe;color:#5b21b6',
+            rejected:'#fee2e2;color:#991b1b'
+        };
+        var badge = document.querySelector('#modal-body .detail-value span[style*="padding:3px"]');
+        if (badge) {
+            badge.style.cssText = 'background:' + (bMap[sel.value]||'#f3f4f6;color:#374151')
+                + ';padding:3px 10px;border-radius:20px;font-size:0.8rem;font-weight:700;';
+            badge.textContent = sel.value;
+        }
+    });
+}
+
+// ── Lightbox ──────────────────────────────────────────
+function openLightbox(src, caption) {
+    document.getElementById('lightbox-img').src     = src;
+    document.getElementById('lightbox-caption').textContent = caption || '';
+    document.getElementById('lightbox').classList.add('open');
+    document.body.style.overflow = 'hidden';
+}
+
+function closeLightbox() {
+    document.getElementById('lightbox').classList.remove('open');
+    // Don't restore overflow here — modal may still be open
+}
+
+// ── Status change (table) ────────────────────────────
+function changeStatus(id, newStatus, callback) {
     fetch('/admin/crimes/' + id + '/update-status', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -194,46 +490,54 @@ function changeStatus(id, newStatus) {
         if (data.error) { showToast('Error: ' + data.error, 'error'); return; }
 
         var badge = document.getElementById('badge-' + id);
-        badge.textContent = data.status;
-        badge.className   = 'badge badge-' + data.status;
+        if (badge) { badge.textContent = data.status; badge.className = 'badge badge-' + data.status; }
 
         var row = document.getElementById('crime-' + id);
-        row.dataset.status = data.status;
+        if (row) row.dataset.status = data.status;
+
+        // Sync other select with same id
+        var tblSel = document.getElementById('select-' + id);
+        if (tblSel) tblSel.value = data.status;
+
+        // Update cached data
+        if (CRIMES[String(id)]) CRIMES[String(id)].status = data.status;
 
         showToast('Report #' + id + ' → ' + data.status, 'success');
-
-        // Re-apply current filter
-        var activeTab = document.querySelector('.filter-tab.active');
-        if (activeTab) {
-            var currentFilter = activeTab.dataset.filterVal || 'all';
-            applyFilter(currentFilter);
-        }
+        applyFilter(document.querySelector('.filter-tab.active')?.dataset.filter || 'all');
+        if (callback) callback();
     })
-    .catch(function() { showToast('Failed to update. Try again.', 'error'); });
+    .catch(function() { showToast('Failed. Try again.', 'error'); });
 }
 
+// ── Filter tabs ──────────────────────────────────────
 function filterTable(status, tabEl) {
     document.querySelectorAll('.filter-tab').forEach(function(t) { t.classList.remove('active'); });
-    if (tabEl) {
-        tabEl.classList.add('active');
-        tabEl.dataset.filterVal = status;
-    }
+    if (tabEl) tabEl.classList.add('active');
     applyFilter(status);
 }
 
 function applyFilter(status) {
-    var rows   = document.querySelectorAll('#crimes-tbody tr[data-status]');
+    var rows    = document.querySelectorAll('#crimes-tbody tr[data-status]');
     var visible = 0;
     rows.forEach(function(row) {
         var show = (status === 'all' || row.dataset.status === status);
         row.style.display = show ? '' : 'none';
-        // Also hide/show its detail row
-        var detailRow = document.getElementById('detail-' + row.id.replace('crime-', ''));
-        if (detailRow) detailRow.style.display = 'none'; // collapse on filter
         if (show) visible++;
     });
-    var countEl = document.getElementById('visible-count');
-    if (countEl) countEl.textContent = visible;
+    var el = document.getElementById('visible-count');
+    if (el) el.textContent = visible;
 }
+
+// Keyboard: Escape closes modal/lightbox
+document.addEventListener('keydown', function(e) {
+    if (e.key === 'Escape') {
+        if (document.getElementById('lightbox').classList.contains('open')) {
+            closeLightbox();
+        } else {
+            closeCrimeModal();
+            document.body.style.overflow = '';
+        }
+    }
+});
 </script>
 {% endblock %}

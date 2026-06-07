@@ -3,7 +3,6 @@ import sqlite3
 from functools import wraps
 
 admin_bp = Blueprint('admin', __name__)
-
 VALID_STATUSES = ['pending', 'investigating', 'approved', 'resolved', 'rejected']
 
 def get_db():
@@ -50,8 +49,7 @@ def review_crimes():
     db = get_db()
     crimes = db.execute(
         '''SELECT crimes.*, users.name AS reporter_name
-           FROM crimes
-           JOIN users ON crimes.user_id = users.id
+           FROM crimes JOIN users ON crimes.user_id = users.id
            ORDER BY crimes.created_at DESC'''
     ).fetchall()
     db.close()
@@ -72,7 +70,6 @@ def update_status(crime_id):
     return jsonify({'status': new_status, 'id': crime_id})
 
 
-# Legacy routes kept for compatibility
 @admin_bp.route('/crimes/<int:crime_id>/approve', methods=['POST'])
 @admin_required
 def approve_crime(crime_id):
@@ -91,3 +88,27 @@ def reject_crime(crime_id):
     db.commit()
     db.close()
     return jsonify({'status': 'rejected'})
+
+
+# ── USER MANAGEMENT ROUTES ────────────────────────────────────
+@admin_bp.route('/users')
+@admin_required
+def manage_users():
+    db = get_db()
+    users = db.execute(
+        "SELECT * FROM users WHERE role='user' ORDER BY created_at DESC"
+    ).fetchall()
+    db.close()
+    return render_template('admin/manage_users.html', users=users)
+
+
+@admin_bp.route('/users/<int:user_id>/verify', methods=['POST'])
+@admin_required
+def verify_user(user_id):
+    data       = request.get_json(force=True)
+    is_verified = 1 if data.get('verified') else 0
+    db = get_db()
+    db.execute('UPDATE users SET is_verified=? WHERE id=?', (is_verified, user_id))
+    db.commit()
+    db.close()
+    return jsonify({'user_id': user_id, 'is_verified': is_verified})

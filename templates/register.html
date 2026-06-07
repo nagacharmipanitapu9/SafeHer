@@ -3,13 +3,31 @@
 
 {% block extra_css %}
 <style>
+    html,
+    body {
+        min-height: 100%;
+        background: #fdf2f8;
+    }
+
+    body {
+        display: flex;
+        flex-direction: column;
+    }
+
+    main {
+        flex: 1;
+        background: #fdf2f8;
+    }
+
     .auth-page {
+        background: #fdf2f8;
+        min-height: calc(100vh - 140px);background: #fdf2f8;
         display: flex; justify-content: center;
         padding: 40px 20px; align-items: flex-start;
     }
     .auth-card {
         background: #fff; border-radius: 16px; padding: 36px;
-        width: 100%; max-width: 560px;
+        width: 100%; max-width: 800px;
         box-shadow: 0 4px 24px rgba(0,0,0,0.08);
         margin: 20px 0;
     }
@@ -17,13 +35,13 @@
     .subtitle { color: #6b7280; margin-bottom: 20px; font-size: 0.93rem; }
 
     .section-label {
-        font-size: 0.75rem; font-weight: 700; color: #7c3aed;
+        font-size: 0.75rem; font-weight: 700; color: #e91e8c;
         text-transform: uppercase; letter-spacing: 0.5px;
         margin: 20px 0 12px; padding-bottom: 6px;
         border-bottom: 1.5px solid #ede9fe;
     }
     .form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
-    @media(max-width:500px) { .form-row { grid-template-columns: 1fr; } }
+    @media(max-width:700px) {.ec-add-row {grid-template-columns: 1fr !important;}}
 
     .form-group { margin-bottom: 12px; }
     .form-group label { display: block; margin-bottom: 4px; font-weight: 500; color: #374151; font-size: 0.86rem; }
@@ -32,7 +50,7 @@
         border-radius: 8px; font-size: 0.92rem; box-sizing: border-box;
         font-family: inherit; transition: border-color 0.2s;
     }
-    .form-group input:focus { outline: none; border-color: #7c3aed; }
+    .form-group input:focus { outline: none; border-color: #e91e8c; }
     .form-group input.invalid { border-color: #ef4444; }
     .field-error { font-size: 0.74rem; color: #ef4444; margin-top: 2px; display: none; }
 
@@ -52,7 +70,7 @@
         margin-bottom: 10px; cursor: pointer;
     }
     .same-addr-row input[type="checkbox"] {
-        width: 15px; height: 15px; accent-color: #6d28d9; cursor: pointer;
+        width: 15px; height: 15px; accent-color: #e91e8c; cursor: pointer;
     }
     .same-addr-row span { font-size: 0.85rem; color: #374151; }
 
@@ -63,11 +81,11 @@
     }
     @media(max-width:500px) { .ec-add-row { grid-template-columns: 1fr; } }
     .btn-add-ec {
-        padding: 9px 12px; background: #6d28d9; color: #fff;
+        padding: 9px 12px; background: #e91e8c; color: #fff;
         border: none; border-radius: 8px; font-size: 0.82rem;
         font-weight: 600; cursor: pointer; white-space: nowrap;
     }
-    .btn-add-ec:hover { background: #5b21b6; }
+    .btn-add-ec:hover { background: #f06ab3; }
     .ec-item {
         background: #f9fafb; border: 1.5px solid #e5e7eb;
         border-radius: 8px; padding: 10px 12px; margin-bottom: 8px;
@@ -87,13 +105,13 @@
     }
 
     .btn-submit {
-        width: 100%; padding: 12px; background: #6d28d9; color: #fff;
+        width: 100%; padding: 12px; background: #e91e8c; color: #fff;
         border: none; border-radius: 8px; font-size: 1rem;
         font-weight: 600; cursor: pointer; transition: background 0.2s; margin-top: 8px;
     }
-    .btn-submit:hover { background: #5b21b6; }
+    .btn-submit:hover { background: #f06ab3; }
     .auth-footer { text-align: center; margin-top: 14px; color: #6b7280; font-size: 0.88rem; }
-    .auth-footer a { color: #6d28d9; font-weight: 600; text-decoration: none; }
+    .auth-footer a { color: #e91e8c; font-weight: 600; text-decoration: none; }
 </style>
 {% endblock %}
 
@@ -162,36 +180,42 @@
                 <input type="text" id="curr-addr" name="current_address"
                        placeholder="Your current residential address" required>
                 <div class="field-error" id="curr-addr-error">Please enter your current address.</div>
-            </div>
-            <label class="same-addr-row">
-                <input type="checkbox" id="same-addr-chk">
-                <span>✅ Permanent address is same as current address</span>
-            </label>
-            <div class="form-group">
-                <label>Permanent Address</label>
-                <input type="text" id="perm-addr" name="permanent_address"
-                       placeholder="Permanent address (if different)">
-            </div>
+            </div>           
 
             <!-- Emergency Contacts -->
             <div class="section-label">🆘 Emergency Contacts <span style="color:#ef4444;">* at least 1</span></div>
             <div class="ec-required-msg" id="ec-required-msg">
                 ⚠️ Please add at least one emergency contact.
             </div>
-            <div class="ec-add-row">
+            <div class="ec-add-row" style="grid-template-columns:1fr 1fr 1.3fr auto;">
                 <div class="form-group" style="margin-bottom:0;">
                     <label>Name</label>
                     <input type="text" id="ec-new-name" placeholder="e.g. Mom, Sister">
                 </div>
+
                 <div class="form-group" style="margin-bottom:0;">
                     <label>Phone</label>
                     <div class="digit-wrap">
-                        <input type="tel" id="ec-new-phone" placeholder="9876543210"
-                               maxlength="10" inputmode="numeric">
+                        <input type="tel" id="ec-new-phone"
+                            placeholder="9876543210"
+                            maxlength="10"
+                            inputmode="numeric">
                         <span class="digit-counter" id="ec-new-ctr">0/10</span>
                     </div>
                 </div>
-                <button type="button" class="btn-add-ec" onclick="addContact()">➕ Add</button>
+
+                <div class="form-group" style="margin-bottom:0;">
+                    <label>Email</label>
+                    <input type="email"
+                        id="ec-new-email"
+                        placeholder="contact@example.com">
+                </div>
+
+                <button type="button"
+                        class="btn-add-ec"
+                        onclick="addContact()">
+                    ➕ Add
+                </button>
             </div>
             <div class="ec-error" id="ec-add-error"></div>
             <div id="contactList"></div>
@@ -278,16 +302,19 @@ function addContact() {
     var nameInp  = document.getElementById('ec-new-name');
     var phoneInp = document.getElementById('ec-new-phone');
     var errEl    = document.getElementById('ec-add-error');
+    var emailInp = document.getElementById('ec-new-email');
     var name  = nameInp.value.trim();
     var phone = phoneInp.value.replace(/\D/g,'');
+    var email = emailInp.value.trim();
     var userPhone = document.getElementById('phone').value;
     errEl.style.display = 'none';
     if (!name) { errEl.textContent='Please enter contact name.'; errEl.style.display='block'; return; }
     if (phone.length!==10) { errEl.textContent='Phone must be 10 digits.'; errEl.style.display='block'; return; }
     if (phone===userPhone) { errEl.textContent='Cannot be same as your phone number.'; errEl.style.display='block'; return; }
+    if (email && !/^\S+@\S+\.\S+$/.test(email)) { errEl.textContent = 'Please enter a valid email address.'; errEl.style.display = 'block'; return;}
     if (regContacts.some(function(c){return c.phone===phone;})) { errEl.textContent='Phone already added.'; errEl.style.display='block'; return; }
-    regContacts.push({ name:name, phone:phone });
-    nameInp.value=''; phoneInp.value='';
+    regContacts.push({ name:name, phone:phone,email:email });
+    nameInp.value=''; phoneInp.value='';emailInp.value='';
     document.getElementById('ec-new-ctr').textContent='0/10';
     document.getElementById('ec-required-msg').style.display='none';
     renderContacts();
@@ -307,6 +334,7 @@ function renderContacts() {
         return '<div class="ec-item">'
             + '<div><div style="font-weight:600;font-size:0.88rem;">'+c.name+'</div>'
             + '<div style="color:#6b7280;font-size:0.8rem;">📞 '+c.phone+'</div></div>'
+            +(c.email ? '<div style="color:#10b981;font-size:0.8rem;">📧 '+c.email+'</div>': '')
             + '<button type="button" class="btn-ec-del" onclick="deleteContact('+i+')">🗑️ Remove</button>'
             + '</div>';
     }).join('');

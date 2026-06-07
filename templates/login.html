@@ -3,14 +3,32 @@
 
 {% block extra_css %}
 <style>
+    html,
+    body {
+        min-height: 100%;
+        background: #fdf2f8;
+    }
+
+    body {
+        display: flex;
+        flex-direction: column;
+    }
+
+    main {
+        flex: 1;
+        background: #fdf2f8;
+    }
+
     .auth-page {
+        background: #fdf2f8;
+        min-height: calc(100vh - 140px);
         display: flex; justify-content: center;
         padding: 40px 20px; min-height: calc(100vh - 120px);
         align-items: center;
     }
     .auth-card {
         background: #fff; border-radius: 16px; padding: 36px;
-        width: 100%; max-width: 440px;
+        width: 100%; max-width: 500px;
         box-shadow: 0 4px 24px rgba(0,0,0,0.08);
     }
     .auth-card h2 { margin: 0 0 6px; color: #1f2937; font-size: 1.6rem; }
@@ -27,21 +45,21 @@
         font-size: 0.95rem; box-sizing: border-box;
         transition: border-color 0.2s; font-family: inherit;
     }
-    .form-group input:focus { outline: none; border-color: #7c3aed; }
+    .form-group input:focus { outline: none; border-color: #e91e8c; }
 
     .btn-submit {
-        width: 100%; padding: 12px; background: #6d28d9; color: #fff;
+        width: 100%; padding: 12px; background: #e91e8c; color: #fff;
         border: none; border-radius: 8px; font-size: 1rem;
         font-weight: 600; cursor: pointer; transition: background 0.2s;
         margin-top: 4px;
     }
-    .btn-submit:hover { background: #5b21b6; }
+    .btn-submit:hover { background: #e91e8c; }
 
     .auth-footer {
         text-align: center; margin-top: 16px;
         color: #6b7280; font-size: 0.9rem;
     }
-    .auth-footer a { color: #6d28d9; font-weight: 600; text-decoration: none; }
+    .auth-footer a { color: #e91e8c; font-weight: 600; text-decoration: none; }
     .auth-footer a:hover { text-decoration: underline; }
 
     .demo-creds {
@@ -55,11 +73,11 @@
     .cred-item {
         background: #f5f3ff; border: 1.5px dashed #c4b5fd;
         border-radius: 8px; padding: 11px 14px;
-        font-size: 0.84rem; color: #5b21b6;
+        font-size: 0.84rem; color: #c2177a;
     }
     .cred-item strong {
         display: block; margin-bottom: 5px;
-        font-size: 0.82rem; color: #7c3aed;
+        font-size: 0.82rem; color: #c2177a;
     }
     .cred-item code {
         background: #ede9fe; padding: 2px 7px;
@@ -69,7 +87,7 @@
     }
     .cred-item code:hover { background: #ddd6fe; }
     .click-hint {
-        font-size: 0.75rem; color: #a78bfa; margin-top: 5px; display: block;
+        font-size: 0.75rem; color: #f06ab3; margin-top: 5px; display: block;
     }
 </style>
 {% endblock %}
@@ -106,14 +124,14 @@
                 <strong>👤 User Account</strong>
                 Email: <code onclick="fill('user@safeher.com', 'user123')">user@safeher.com</code>
                 &nbsp; Password: <code onclick="fill('user@safeher.com', 'user123')">user123</code>
-                <span class="click-hint">↑ Click any value to auto-fill the form</span>
+                <span class="click-hint">Click any value to auto-fill the form</span>
             </div>
 
             <div class="cred-item">
                 <strong>🔒 Admin Account</strong>
                 Email: <code onclick="fill('admin@safeher.com', 'admin123')">admin@safeher.com</code>
                 &nbsp; Password: <code onclick="fill('admin@safeher.com', 'admin123')">admin123</code>
-                <span class="click-hint">↑ Click any value to auto-fill the form</span>
+                <span class="click-hint">Click any value to auto-fill the form</span>
             </div>
         </div>
     </div>

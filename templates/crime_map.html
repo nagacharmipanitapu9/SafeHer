@@ -5,52 +5,118 @@
 <style>
     .map-page { max-width: 1100px; margin: 0 auto; padding: 36px 20px; }
     .map-page h1 { font-size: 1.8rem; font-weight: 800; margin-bottom: 4px; }
-    .subtitle { color: #6b7280; margin-bottom: 16px; font-size: 0.95rem; }
-    .map-legend { display:flex; flex-wrap:wrap; gap:8px; margin-bottom:14px; }
+    .subtitle { color: #6b7280; margin-bottom: 12px; font-size: 0.95rem; }
+
+    /* Legend pills — clickable filters */
+    .map-legend { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 6px; }
     .legend-item {
-        background:#fff; border:1.5px solid #e5e7eb; border-radius:20px;
-        padding:4px 14px; font-size:0.82rem; font-weight:500; color:#374151;
-        box-shadow:0 1px 3px rgba(0,0,0,0.05);
+        background: #fff; border: 1.5px solid #e5e7eb; border-radius: 20px;
+        padding: 5px 16px; font-size: 0.83rem; font-weight: 500; color: #374151;
+        box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+        cursor: pointer; transition: all 0.18s; user-select: none;
     }
+    .legend-item:hover { border-color: #e91e8c; color: #e91e8c; }
+    .legend-item.active {
+        background: #e91e8c; color: #fff !important;
+        border-color: #e91e8c;
+        box-shadow: 0 2px 8px rgba(233,30,140,0.35);
+    }
+
+    .filter-hint { font-size: 0.78rem; color: #9ca3af; margin-bottom: 12px; }
+
+    /* Map */
     #crime-map {
-        width:100%; height:520px; border-radius:14px; overflow:hidden;
-        border:1.5px solid #e5e7eb; box-shadow:0 2px 12px rgba(0,0,0,0.07);
-        position:relative; z-index:1;
+        width: 100%; height: 520px; border-radius: 14px; overflow: hidden;
+        border: 1.5px solid #e5e7eb; box-shadow: 0 2px 12px rgba(0,0,0,0.07);
+        position: relative; z-index: 1;
     }
-    .map-note { margin-top:10px; font-size:0.8rem; color:#9ca3af; text-align:center; }
-    #map-stats { display:flex; flex-wrap:wrap; gap:12px; margin-top:20px; }
+
+    .map-note { margin-top: 10px; font-size: 0.8rem; color: #9ca3af; text-align: center; }
+
+    /* Stats */
+    #map-stats { display: flex; flex-wrap: wrap; gap: 12px; margin-top: 20px; }
     .map-stat {
-        background:#fff; border-radius:10px; padding:14px 18px;
-        box-shadow:0 2px 8px rgba(0,0,0,0.06); flex:1; min-width:110px; text-align:center;
+        background: #fff; border-radius: 10px; padding: 14px 18px;
+        box-shadow: 0 2px 8px rgba(0,0,0,0.06); flex: 1; min-width: 110px; text-align: center;
     }
-    .map-stat .val { font-size:1.6rem; font-weight:800; }
-    .map-stat .lbl { font-size:0.78rem; color:#6b7280; margin-top:2px; }
+    .map-stat .val { font-size: 1.6rem; font-weight: 800; }
+    .map-stat .lbl { font-size: 0.78rem; color: #6b7280; margin-top: 2px; }
+
+    /* Route panel — admin only */
+    #route-panel {
+        display: none;
+        background: #fff; border-radius: 14px; padding: 20px 24px;
+        box-shadow: 0 2px 16px rgba(0,0,0,0.1);
+        border-left: 5px solid #e91e8c;
+        margin-top: 16px;
+    }
+    .route-panel-header {
+        display: flex; align-items: center; justify-content: space-between;
+        margin-bottom: 12px;
+    }
+    .route-panel-title { font-size: 1rem; font-weight: 700; color: #1f2937; }
+    .btn-clear-route {
+        background: #fee2e2; color: #991b1b; border: none;
+        border-radius: 7px; padding: 6px 14px; font-size: 0.8rem;
+        font-weight: 600; cursor: pointer; transition: all 0.15s;
+    }
+    .btn-clear-route:hover { background: #ef4444; color: #fff; }
 </style>
 {% endblock %}
 
 {% block content %}
+<!-- Pass admin flag to JS as a global variable -->
+<script>
+    window.SAFEHER_IS_ADMIN = {{ 'true' if session.get('role') == 'admin' else 'false' }};
+</script>
+
 <div class="map-page">
     <h1>Crime Map 🗺️</h1>
-    <p class="subtitle">View all reported incidents in your area</p>
+    <p class="subtitle">View reported incidents in your area</p>
+
+    <!-- Clickable filter legend -->
+    <p class="filter-hint">
+        💡 Click a type to <b>highlight</b> those crimes (others dim but stay visible).
+        Click <b>All</b> to reset.
+        {% if session.get('role') == 'admin' %}
+        {% endif %}
+    </p>
 
     <div class="map-legend">
-        <div class="legend-item">⚠️ Harassment</div>
-        <div class="legend-item">🔴 Assault</div>
-        <div class="legend-item">🟡 Theft</div>
-        <div class="legend-item">🟠 Stalking</div>
-        <div class="legend-item">🟣 Domestic Violence</div>
-        <div class="legend-item">⚪ Other</div>
-        <div class="legend-item" style="border-color:#fca5a5;color:#991b1b;">⏳ Pending</div>
-        <div class="legend-item" style="border-color:#93c5fd;color:#1e40af;">🔍 Investigating</div>
-        <div class="legend-item" style="border-color:#a78bfa;color:#5b21b6;">✔️ Resolved</div>
+        <div class="legend-item active" onclick="filterByType('all', this)">All</div>
+        <div class="legend-item" onclick="filterByType('harassment', this)">⚠️ Harassment</div>
+        <div class="legend-item" onclick="filterByType('assault', this)">🔴 Assault</div>
+        <div class="legend-item" onclick="filterByType('theft', this)">🟡 Theft</div>
+        <div class="legend-item" onclick="filterByType('stalking', this)">🟠 Stalking</div>
+        <div class="legend-item" onclick="filterByType('domestic_violence', this)">🟣 Domestic Violence</div>
+        <div class="legend-item" onclick="filterByType('other', this)">⚪ Other</div>
     </div>
 
     <div id="crime-map"></div>
 
-    <p class="map-note">Verified reports shown in full colour · Pending/investigating shown dimmed</p>
+    <!-- Route info panel — shown only when admin clicks a crime -->
+    {% if session.get('role') == 'admin' %}
+    <div id="route-panel">
+        <div class="route-panel-header">
+            <div class="route-panel-title">🧭 Route from Your Location to Crime Scene</div>
+            <button class="btn-clear-route" onclick="clearRoute()">✕ Clear Route</button>
+        </div>
+        <div id="route-info"></div>
+    </div>
+    {% endif %}
+
+    <p class="map-note">
+        Full colour = verified · Dimmed = pending/investigating
+        {% if session.get('role') != 'admin' %}
+        · You can see all approved reports + your own pending ones
+        {% endif %}
+    </p>
 
     <div id="map-stats">
-        <div class="map-stat"><div class="val" style="color:#9ca3af;">…</div><div class="lbl">Loading</div></div>
+        <div class="map-stat">
+            <div class="val" style="color:#9ca3af;">…</div>
+            <div class="lbl">Loading</div>
+        </div>
     </div>
 </div>
 {% endblock %}

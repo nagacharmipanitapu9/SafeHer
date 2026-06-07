@@ -3,7 +3,7 @@
 
 {% block extra_css %}
 <style>
-    .report-page { max-width: 700px; margin: 0 auto; padding: 36px 20px 60px; }
+    .report-page { max-width: 1000px; margin: 0 auto; padding: 36px 20px 60px; }
     .report-page h1 { margin-bottom: 4px; font-size: 1.8rem; font-weight: 800; }
     .subtitle { color: #6b7280; margin-bottom: 24px; font-size: 0.95rem; }
 
@@ -20,7 +20,7 @@
     }
     .form-group input:focus,
     .form-group select:focus,
-    .form-group textarea:focus { outline: none; border-color: #7c3aed; }
+    .form-group textarea:focus { outline: none; border-color: #e91e8c; }
     .form-group textarea { min-height: 100px; resize: vertical; }
 
     /* ── Location autocomplete ── */
@@ -37,7 +37,7 @@
         display: flex; align-items: flex-start; gap: 8px;
     }
     .location-dropdown-item:last-child { border-bottom: none; }
-    .location-dropdown-item:hover { background: #f5f3ff; color: #6d28d9; }
+    .location-dropdown-item:hover { background: #f5f3ff; color: #f06ab3; }
     .place-name { font-weight: 600; display: block; }
     .place-full { color: #9ca3af; font-size: 0.78rem; display: block; }
 
@@ -52,7 +52,7 @@
         z-index: 1;
         position: relative;
     }
-    #location-picker.has-pin { border-color: #7c3aed; box-shadow: 0 0 0 3px #ede9fe; }
+    #location-picker.has-pin { border-color: #e91e8c; box-shadow: 0 0 0 3px #ede9fe; }
 
     #pin-hint { font-size: 0.82rem; color: #9ca3af; margin-top: 8px; }
     #pin-hint.pinned { color: #059669; font-weight: 600; }
@@ -63,7 +63,7 @@
         margin-top: 10px;
         background: #f5f3ff; border: 1px solid #c4b5fd;
         border-radius: 8px; padding: 10px 16px;
-        font-size: 0.85rem; color: #5b21b6;
+        font-size: 0.85rem; color: #e91e8c;
         gap: 24px; align-items: center;
     }
     .coord-val {
@@ -77,14 +77,14 @@
         padding: 24px; text-align: center; cursor: pointer;
         transition: border-color 0.2s, background 0.2s; position: relative;
     }
-    .file-upload-area:hover { border-color: #7c3aed; background: #faf5ff; }
-    .file-upload-area.dragover { border-color: #7c3aed; background: #f5f3ff; }
+    .file-upload-area:hover { border-color: #e91e8c; background: #faf5ff; }
+    .file-upload-area.dragover { border-color: #e91e8c; background: #f5f3ff; }
     .file-upload-area input[type="file"] {
         position: absolute; inset: 0; opacity: 0; cursor: pointer; width: 100%; height: 100%;
     }
     .file-upload-icon { font-size: 2rem; margin-bottom: 6px; }
     .file-upload-text { color: #6b7280; font-size: 0.88rem; line-height: 1.5; }
-    .file-upload-text strong { color: #7c3aed; }
+    .file-upload-text strong { color: #e91e8c; }
 
     .file-previews { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 12px; }
     .file-preview-item {
@@ -105,11 +105,11 @@
 
     /* ── Submit button ── */
     .btn-submit {
-        width: 100%; padding: 14px; background: #6d28d9; color: #fff;
+        width: 100%; padding: 14px; background: #e91e8c; color: #fff;
         border: none; border-radius: 8px; font-size: 1rem; font-weight: 700;
         cursor: pointer; transition: background 0.2s; margin-top: 8px;
     }
-    .btn-submit:hover { background: #5b21b6; }
+    .btn-submit:hover { background: #c2177a; }
 </style>
 {% endblock %}
 
@@ -146,6 +146,15 @@
             <div class="form-group">
                 <label>Description <span style="color:#ef4444;">*</span></label>
                 <textarea name="description" placeholder="Describe the incident in detail..." required></textarea>
+            </div>
+            <div class="form-group">
+                <label>📅 Date & Time of Incident <span style="color:#ef4444;">*</span></label>
+                <input type="datetime-local" id="incident_date" name="incident_date"
+                    required style="width:100%;padding:10px 14px;border:1.5px solid #d1d5db;
+                    border-radius:8px;font-size:0.93rem;box-sizing:border-box;font-family:inherit;">
+                <div style="font-size:0.75rem;color:#9ca3af;margin-top:3px;">
+                    When did the incident actually happen?
+                </div>
             </div>
 
             <div class="form-group">
@@ -340,6 +349,15 @@ document.addEventListener('DOMContentLoaded', function () {
         if (!locName.value.trim()) {
             locName.value = document.getElementById('lat-val').textContent
                 + ', ' + document.getElementById('lng-val').textContent;
+        }
+        // Prevent future dates for incident
+        var dtInput = document.getElementById('incident_date');
+        if (dtInput) {
+            var now = new Date();
+            now.setMinutes(now.getMinutes() - now.getTimezoneOffset());
+            dtInput.max = now.toISOString().slice(0,16);
+            // Default to now
+            dtInput.value = now.toISOString().slice(0,16);
         }
     });
 

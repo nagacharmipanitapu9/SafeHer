@@ -1,0 +1,686 @@
+{% extends 'base.html' %}
+{% block title %}Safe Route Planner – SafeHer{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+<style>
+/* ══════════════════════════════════════════
+   Safe Route Planner — matches screenshot
+   Light pink (#fdf2f8) background, white cards,
+   rose/pink accents, SafeHer font stack
+══════════════════════════════════════════ */
+
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+.sr-page {
+    background: #fdf2f8;
+    min-height: 100vh;
+    padding: 32px 28px 72px;
+    max-width: 1280px;
+    margin: 0 auto;
+}
+
+/* ── Header ── */
+.sr-header {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    margin-bottom: 28px;
+    flex-wrap: wrap;
+    gap: 14px;
+}
+
+.sr-title h1 {
+    font-size: 2rem;
+    font-weight: 800;
+    color: #111827;
+    line-height: 1.2;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.sr-title h1 .accent { color: #e91e8c; }
+.sr-title p { color: #6b7280; font-size: .88rem; margin-top: 5px; }
+
+/* ── Day / Night toggle ── */
+.time-toggle {
+    display: flex;
+    background: #fff;
+    border: 1.5px solid #f0c8e0;
+    border-radius: 999px;
+    padding: 4px;
+    gap: 2px;
+    align-self: flex-start;
+    margin-top: 6px;
+}
+
+.tt-btn {
+    padding: 7px 18px;
+    border-radius: 999px;
+    border: none;
+    background: transparent;
+    color: #6b7280;
+    font-size: .84rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all .18s;
+    display: flex;
+    align-items: center;
+    gap: 5px;
+    white-space: nowrap;
+}
+
+.tt-btn.active {
+    background: #e91e8c;
+    color: #fff;
+    box-shadow: 0 2px 10px rgba(233,30,140,.3);
+}
+
+.tt-btn:not(.active):hover { color: #111827; background: #fdf2f8; }
+
+/* ── Search card ── */
+.search-card {
+    background: #fff;
+    border: 1.5px solid #f0c8e0;
+    border-radius: 16px;
+    padding: 22px 24px;
+    margin-bottom: 24px;
+    box-shadow: 0 2px 12px rgba(233,30,140,.05);
+}
+
+.search-row {
+    display: grid;
+    grid-template-columns: 1fr 1fr auto;
+    gap: 16px;
+    align-items: end;
+}
+
+@media(max-width: 780px) { .search-row { grid-template-columns: 1fr; } }
+
+.field-label {
+    font-size: .72rem;
+    font-weight: 700;
+    letter-spacing: .08em;
+    text-transform: uppercase;
+    color: #6b7280;
+    margin-bottom: 7px;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+}
+
+.field-dot {
+    width: 7px; height: 7px;
+    border-radius: 50%;
+    display: inline-block;
+    flex-shrink: 0;
+}
+
+.dot-rose   { background: #e91e8c; }
+.dot-amber  { background: #f59e0b; }
+
+/* ── Autocomplete field ── */
+.loc-wrap { position: relative; }
+
+.loc-row {
+    display: flex;
+    gap: 8px;
+    align-items: center;
+}
+
+.loc-input {
+    flex: 1;
+    padding: 11px 14px;
+    border: 1.5px solid #e5e7eb;
+    border-radius: 10px;
+    font-size: .9rem;
+    color: #111827;
+    background: #fafafa;
+    transition: border-color .15s, box-shadow .15s;
+    min-width: 0;
+}
+
+.loc-input::placeholder { color: #9ca3af; }
+.loc-input:focus {
+    outline: none;
+    border-color: #e91e8c;
+    background: #fff;
+    box-shadow: 0 0 0 3px rgba(233,30,140,.1);
+}
+
+.btn-gps {
+    flex-shrink: 0;
+    width: 42px; height: 42px;
+    border: 1.5px solid #e5e7eb;
+    border-radius: 10px;
+    background: #fdf2f8;
+    color: #e91e8c;
+    font-size: 1rem;
+    cursor: pointer;
+    display: flex; align-items: center; justify-content: center;
+    transition: background .15s, border-color .15s;
+}
+
+.btn-gps:hover { background: #fce7f3; border-color: #e91e8c; }
+.btn-gps:disabled { opacity: .5; cursor: not-allowed; }
+
+/* swap icon between fields */
+.btn-swap {
+    flex-shrink: 0;
+    width: 42px; height: 42px;
+    border: 1.5px solid #e5e7eb;
+    border-radius: 10px;
+    background: #fafafa;
+    color: #6b7280;
+    font-size: 1rem;
+    cursor: pointer;
+    display: flex; align-items: center; justify-content: center;
+    transition: background .15s;
+}
+
+.btn-swap:hover { background: #f3f4f6; color: #111827; }
+
+/* ── Dropdown ── */
+.loc-drop {
+    position: absolute;
+    top: calc(100% + 5px);
+    left: 0; right: 0;
+    background: #fff;
+    border: 1.5px solid #f0c8e0;
+    border-radius: 12px;
+    max-height: 220px;
+    overflow-y: auto;
+    display: none;
+    z-index: 1000;
+    box-shadow: 0 8px 28px rgba(0,0,0,.1);
+}
+
+.loc-drop.open { display: block; }
+
+.drop-item {
+    padding: 11px 14px;
+    display: flex;
+    align-items: flex-start;
+    gap: 9px;
+    cursor: pointer;
+    border-bottom: 1px solid #fdf2f8;
+    transition: background .1s;
+}
+
+.drop-item:last-child { border-bottom: none; }
+.drop-item:hover { background: #fdf2f8; }
+.drop-icon { color: #e91e8c; flex-shrink: 0; margin-top: 1px; font-size: .9rem; }
+.drop-main { font-size: .86rem; font-weight: 600; color: #111827; }
+.drop-sub  { font-size: .75rem; color: #6b7280; margin-top: 2px; }
+.drop-loading { padding: 14px; text-align: center; color: #9ca3af; font-size: .83rem; }
+
+/* ── Find button ── */
+.btn-find {
+    height: 44px;
+    padding: 0 26px;
+    background: #e91e8c;
+    color: #fff;
+    border: none;
+    border-radius: 10px;
+    font-size: .92rem;
+    font-weight: 700;
+    cursor: pointer;
+    white-space: nowrap;
+    display: flex;
+    align-items: center;
+    gap: 7px;
+    transition: box-shadow .18s, transform .1s;
+    align-self: flex-end;
+}
+
+.btn-find:hover { box-shadow: 0 4px 16px rgba(233,30,140,.35); transform: translateY(-1px); }
+.btn-find:active { transform: translateY(0); }
+.btn-find:disabled { opacity: .55; cursor: not-allowed; transform: none; box-shadow: none; }
+
+/* status bar */
+.status-bar {
+    display: none;
+    align-items: center;
+    gap: 10px;
+    margin-top: 14px;
+    padding: 10px 14px;
+    background: #fdf2f8;
+    border: 1px solid #f0c8e0;
+    border-radius: 8px;
+    font-size: .84rem;
+    color: #9d174d;
+}
+
+.status-bar.show { display: flex; }
+
+.spinner {
+    width: 14px; height: 14px;
+    border: 2px solid #fbcfe8;
+    border-top-color: #e91e8c;
+    border-radius: 50%;
+    animation: spin .7s linear infinite;
+    flex-shrink: 0;
+}
+
+@keyframes spin { to { transform: rotate(360deg); } }
+
+/* ══════════════════════════════════════
+   MAIN LAYOUT — map left, panel right
+══════════════════════════════════════ */
+.sr-main {
+    display: grid;
+    grid-template-columns: 1fr 360px;
+    gap: 20px;
+    align-items: start;
+}
+
+@media(max-width: 1050px) { .sr-main { grid-template-columns: 1fr; } }
+
+/* ── Map ── */
+.map-card {
+    background: #fff;
+    border: 1.5px solid #f0c8e0;
+    border-radius: 16px;
+    padding: 8px;
+    box-shadow: 0 2px 12px rgba(233,30,140,.05);
+}
+
+#route-map {
+    height: 520px;
+    width: 100%;
+    border-radius: 12px;
+    background: #e5e7eb;
+}
+
+/* ══════════════════════════════════════
+   RIGHT PANEL
+══════════════════════════════════════ */
+.right-panel { display: flex; flex-direction: column; gap: 14px; }
+
+/* ── Idle state ── */
+.idle-card {
+    background: #fff;
+    border: 1.5px solid #f0c8e0;
+    border-radius: 16px;
+    padding: 36px 20px;
+    text-align: center;
+    color: #9ca3af;
+}
+
+.idle-card .idle-icon { font-size: 2.4rem; margin-bottom: 10px; }
+.idle-card p { font-size: .88rem; line-height: 1.6; }
+.idle-card strong { color: #e91e8c; }
+
+/* ── Recommended card ── */
+.rec-card {
+    background: #fff;
+    border: 1.5px solid #f0c8e0;
+    border-radius: 16px;
+    padding: 18px 20px;
+    box-shadow: 0 2px 12px rgba(233,30,140,.06);
+    position: relative;
+}
+
+.rec-label {
+    font-size: .7rem;
+    font-weight: 700;
+    letter-spacing: .1em;
+    text-transform: uppercase;
+    color: #9ca3af;
+    margin-bottom: 6px;
+}
+
+.rec-score {
+    font-size: 2.6rem;
+    font-weight: 800;
+    color: #7c40e5;
+    line-height: 1;
+}
+
+.rec-score span {
+    font-size: .95rem;
+    font-weight: 500;
+    color: #6b7280;
+    margin-left: 4px;
+}
+
+.rec-risk {
+    font-size: .83rem;
+    color: #6b7280;
+    margin-top: 5px;
+}
+
+.rec-risk strong { color: #111827; }
+
+.badge-safe     { background: #dcfce7; color: #166534; }
+.badge-moderate { background: #fef3c7; color: #92400e; }
+.badge-risky    { background: #fee2e2; color: #991b1b; }
+.badge-safest   { background: #dbeafe; color: #1e40af; }
+
+.route-badge {
+    position: absolute;
+    top: 16px; right: 16px;
+    font-size: .72rem;
+    font-weight: 700;
+    padding: 4px 10px;
+    border-radius: 999px;
+}
+
+/* ── Route list cards ── */
+.route-item {
+    background: #fff;
+    border: 1.5px solid #e5e7eb;
+    border-radius: 14px;
+    padding: 14px 16px;
+    cursor: pointer;
+    transition: border-color .15s, box-shadow .15s, transform .1s;
+    position: relative;
+}
+
+.route-item:hover { border-color: #f0c8e0; box-shadow: 0 4px 14px rgba(233,30,140,.1); }
+
+.route-item.active {
+    border-color: #e91e8c;
+    box-shadow: 0 4px 16px rgba(233,30,140,.18);
+    background: #fdf2f8;
+}
+
+.route-item-head {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 8px;
+}
+
+.route-num-circle {
+    width: 24px; height: 24px;
+    border-radius: 50%;
+    background: #e91e8c;
+    color: #fff;
+    font-size: .75rem;
+    font-weight: 800;
+    display: flex; align-items: center; justify-content: center;
+    flex-shrink: 0;
+}
+
+.route-item-name {
+    font-weight: 700;
+    font-size: .9rem;
+    color: #111827;
+    margin-left: 8px;
+    flex: 1;
+}
+
+.route-meta {
+    display: flex;
+    gap: 12px;
+    font-size: .77rem;
+    color: #6b7280;
+    margin-bottom: 9px;
+    flex-wrap: wrap;
+}
+
+.route-meta span { display: flex; align-items: center; gap: 3px; }
+
+.route-bar {
+    height: 5px;
+    background: #f3f4f6;
+    border-radius: 999px;
+    overflow: hidden;
+}
+
+.route-bar-fill {
+    height: 100%;
+    border-radius: 999px;
+    transition: width .5s;
+}
+
+/* ══════════════════════════════════════
+   SAFETY BREAKDOWN (below map + panel)
+══════════════════════════════════════ */
+.breakdown-wrap {
+    display: none;
+    margin-top: 20px;
+}
+
+.breakdown-wrap.show { display: block; }
+
+.breakdown-card {
+    background: #fff;
+    border: 1.5px solid #f0c8e0;
+    border-radius: 16px;
+    padding: 22px 24px;
+    box-shadow: 0 2px 12px rgba(233,30,140,.05);
+    position: relative;
+}
+
+.breakdown-title {
+    font-size: 1rem;
+    font-weight: 700;
+    color: #111827;
+    margin-bottom: 18px;
+}
+
+/* 4 factor boxes */
+.factors-grid {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 12px;
+    margin-bottom: 16px;
+}
+
+@media(max-width: 800px) { .factors-grid { grid-template-columns: repeat(2, 1fr); } }
+@media(max-width: 480px) { .factors-grid { grid-template-columns: 1fr; } }
+
+.factor-box {
+    background: #fff;
+    border: 1.5px solid #e5e7eb;
+    border-radius: 12px;
+    padding: 14px 16px;
+}
+
+.factor-head {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 8px;
+}
+
+.factor-name {
+    font-size: .8rem;
+    font-weight: 600;
+    color: #374151;
+    display: flex;
+    align-items: center;
+    gap: 5px;
+}
+
+.factor-score {
+    font-size: .9rem;
+    font-weight: 800;
+    color: #111827;
+}
+
+.factor-bar {
+    height: 5px;
+    background: #f3f4f6;
+    border-radius: 999px;
+    overflow: hidden;
+    margin-bottom: 6px;
+}
+
+.factor-bar-fill {
+    height: 100%;
+    border-radius: 999px;
+    transition: width .6s;
+}
+
+.factor-desc {
+    font-size: .72rem;
+    color: #9ca3af;
+}
+
+/* 3 stat boxes */
+.stats-row {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 12px;
+}
+
+@media(max-width: 600px) { .stats-row { grid-template-columns: 1fr; } }
+
+.stat-box {
+    background: #fafafa;
+    border: 1.5px solid #e5e7eb;
+    border-radius: 12px;
+    padding: 18px 16px;
+    text-align: center;
+}
+
+.stat-val {
+    font-size: 1.5rem;
+    font-weight: 800;
+    color: #111827;
+}
+
+.stat-val.risk-col { color: #7c3aed; }
+
+.stat-key {
+    font-size: .72rem;
+    font-weight: 700;
+    letter-spacing: .08em;
+    text-transform: uppercase;
+    color: #9ca3af;
+    margin-top: 4px;
+}
+
+/* ══════════════════════════════════════
+   TOAST
+══════════════════════════════════════ */
+.toast {
+    position: fixed;
+    bottom: 28px; right: 28px;
+    padding: 13px 20px;
+    border-radius: 10px;
+    font-size: .88rem;
+    font-weight: 600;
+    color: #fff;
+    box-shadow: 0 6px 24px rgba(0,0,0,.15);
+    z-index: 9999;
+    opacity: 0;
+    transform: translateY(14px);
+    transition: opacity .28s, transform .28s;
+    max-width: 300px;
+    pointer-events: none;
+}
+
+.toast.show { opacity: 1; transform: translateY(0); pointer-events: auto; }
+.toast.t-success { background: #16a34a; }
+.toast.t-error   { background: #dc2626; }
+.toast.t-info    { background: #7c3aed; }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="sr-page">
+
+    <!-- HEADER -->
+    <div class="sr-header">
+        <div class="sr-title">
+            <h1>🛡️ Safe <span class="accent">Route</span> Planner</h1>
+            <p>Real-time safety scoring using crime data, street lights &amp; safe anchors.</p>
+        </div>
+        <div class="time-toggle">
+            <button class="tt-btn" onclick="setMode('day', this)">☀️ Day</button>
+            <button class="tt-btn active" onclick="setMode('night', this)">🌙 Night</button>
+            <button class="tt-btn" onclick="setMode('late_night', this)">🌃 Late Night</button>
+        </div>
+    </div>
+
+    <!-- SEARCH CARD -->
+    <div class="search-card">
+        <div class="search-row">
+
+            <!-- Start location -->
+            <div class="loc-wrap">
+                <div class="field-label">
+                    <span class="field-dot dot-rose"></span> Start Location
+                </div>
+                <div class="loc-row">
+                    <input id="origin-input" class="loc-input"
+                           placeholder="Enter starting point…"
+                           autocomplete="off"
+                           oninput="suggestPlace(this, 'origin-drop')">
+                    <button class="btn-gps" id="gps-btn" onclick="useGPS()" title="Use my location">📍</button>
+                    <button class="btn-swap" onclick="swapLocations()" title="Swap locations">⇅</button>
+                </div>
+                <div class="loc-drop" id="origin-drop"></div>
+            </div>
+
+            <!-- Destination -->
+            <div class="loc-wrap">
+                <div class="field-label">
+                    <span class="field-dot dot-amber"></span> Destination
+                </div>
+                <div class="loc-row">
+                    <input id="dest-input" class="loc-input"
+                           placeholder="Where are you going?"
+                           autocomplete="off"
+                           oninput="suggestPlace(this, 'dest-drop')">
+                </div>
+                <div class="loc-drop" id="dest-drop"></div>
+            </div>
+
+            <!-- Button -->
+            <button class="btn-find" id="findBtn" onclick="findRoutes()">
+                🛡️ Find Safe Routes
+            </button>
+        </div>
+
+        <div class="status-bar" id="statusBar">
+            <div class="spinner"></div>
+            <span id="statusText">Calculating safest routes…</span>
+        </div>
+    </div>
+
+    <!-- MAIN GRID -->
+    <div class="sr-main">
+
+        <!-- Map -->
+        <div class="map-card">
+            <div id="route-map"></div>
+        </div>
+
+        <!-- Right panel -->
+        <div class="right-panel" id="rightPanel">
+            <div class="idle-card">
+                <div class="idle-icon">🛡️</div>
+                <p>Enter your <strong>start</strong> and <strong>destination</strong>,<br>
+                then tap <strong>Find Safe Routes</strong>.<br><br>
+                We score every route by crime, lighting,<br>population &amp; safe anchors.</p>
+            </div>
+        </div>
+
+    </div>
+
+    <!-- SAFETY BREAKDOWN (shown after selecting a route) -->
+    <div class="breakdown-wrap" id="breakdownWrap">
+        <div class="breakdown-card">
+            <div class="breakdown-title" id="breakdownTitle">Safety breakdown — Route 1</div>
+            <div class="route-badge" id="breakdownBadge"></div>
+
+            <div class="factors-grid" id="factorsGrid"></div>
+            <div class="stats-row"   id="statsRow"></div>
+        </div>
+    </div>
+
+</div>
+
+<div class="toast" id="toast"></div>
+{% endblock %}
+
+{% block extra_js %}
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<script src="{{ url_for('static', filename='js/saferoute.js') }}"></script>
+{% endblock %}

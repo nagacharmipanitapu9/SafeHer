@@ -32,9 +32,9 @@
         padding:10px 22px; border-radius:8px; font-weight:600; font-size:0.92rem;
         text-decoration:none; display:inline-flex; align-items:center; gap:6px; transition:all 0.2s;
     }
-    .btn-purple { background:#6d28d9; color:#fff !important; }
-    .btn-purple:hover { background:#5b21b6; }
-    .btn-outline { background:#fff; color:#6d28d9 !important; border:2px solid #6d28d9; }
+    .btn-purple { background:#e91e8c; color:#fff !important; }
+    .btn-purple:hover { background:#e91e8c; }
+    .btn-outline { background:#fff; color:#e91e8c !important; border:2px solid #e91e8c; }
     .btn-outline:hover { background:#ede9fe; }
 
     .section-title {
@@ -68,7 +68,7 @@
         font-size:0.8rem; font-weight:600; cursor:pointer;
         background:#fff; color:#374151; transition:border-color 0.2s;
     }
-    .status-select:focus { outline:none; border-color:#7c3aed; }
+    .status-select:focus { outline:none; border-color:#e91e8c; }
 
     .desc-short { max-width:180px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; color:#6b7280; font-size:0.82rem; }
     .empty-state { text-align:center; padding:40px; color:#9ca3af; font-size:0.9rem; }
@@ -101,14 +101,18 @@
             <div class="value">{{ stats.rejected }}</div>
             <div class="label">Rejected</div>
         </div>
-        <div class="stat-card gray">
+        <a href="/admin/users" style="text-decoration:none;">
+            <div class="stat-card gray" style="cursor:pointer;transition:transform 0.2s,box-shadow 0.2s;"
+            onmouseover="this.style.transform='translateY(-3px)';this.style.boxShadow='0 6px 20px rgba(0,0,0,0.1)'"
+            onmouseout="this.style.transform='';this.style.boxShadow=''">
             <div class="value">{{ stats.total_users }}</div>
-            <div class="label">Users</div>
-        </div>
+            <div class="label">Users 👥</div>
+            </div>
+        </a>
     </div>
 
     <div class="action-row">
-        <a href="/admin/crimes" class="btn-action btn-purple">📋 Review All Reports</a>
+        <a href="/admin/crimes" class="btn-action btn-purple">📋 Review Reports</a>
         <a href="/admin/map"    class="btn-action btn-outline">🗺️ Crime Map</a>
     </div>
 

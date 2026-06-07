@@ -18,7 +18,7 @@
             display:flex; flex-direction:column; overflow:hidden;
         }
         .chat-header {
-            background:linear-gradient(135deg,#7b2cbf,#e84393);
+            background:linear-gradient(135deg,#e91e8c,#9c27b0);
             color:white; padding:16px; font-weight:600; font-size:1rem;
         }
         .chat-messages {
@@ -30,7 +30,7 @@
             font-size:14px; line-height:1.5; word-break:break-word;
         }
         .message.bot  { background:#ece9f3; align-self:flex-start; }
-        .message.user { background:#7b2cbf; color:white; align-self:flex-end; }
+        .message.user { background:#f06ab3; color:white; align-self:flex-end; }
 
         .chat-input-area {
             display:flex; align-items:center; padding:12px 16px;
@@ -41,10 +41,10 @@
             border:2px solid #e5e5e5; font-size:14px; outline:none;
             transition:all 0.25s; background:#fafafa; font-family:inherit;
         }
-        .chat-input-area input:focus { border-color:#9d4edd; background:white; }
+        .chat-input-area input:focus { border-color:#e91e8c; background:white; }
         .chat-input-area button {
             width:44px; height:44px; border-radius:50%; border:none;
-            cursor:pointer; background:linear-gradient(135deg,#7b2cbf,#e84393);
+            cursor:pointer; background:linear-gradient(135deg,#e91e8c,#9c27b0);
             color:white; font-size:18px; display:flex; align-items:center;
             justify-content:center; transition:all 0.2s; flex-shrink:0;
         }
@@ -52,11 +52,11 @@
 
         .quick-options { display:flex; justify-content:center; gap:12px; margin-top:14px; flex-wrap:wrap; }
         .quick-options button {
-            background:#eee8f7; border:none; padding:10px 18px;
+            background:#e91e8c; border:none; padding:10px 18px;color:white;
             border-radius:20px; font-size:14px; cursor:pointer; transition:0.2s;
             font-family:inherit;
         }
-        .quick-options button:hover { background:#d9c8f5; }
+        .quick-options button:hover { background:#c2177a; color:white}
 
         .faq-section { width:min(900px,100%); margin-top:24px; }
         .faq-title { font-weight:600; margin-bottom:12px; color:#555; }
@@ -66,16 +66,16 @@
             cursor:pointer; font-size:14px; transition:0.2s;
             border:1px solid #e5e5e5; font-family:inherit;
         }
-        .faq-item:hover { background:#ebe6ff; border-color:#9d4edd; }
+        .faq-item:hover { background:#f06ab3; border-color:#e91e8c; color:white;transition:0.1s}
 
         /* Map link button inside chat */
         .map-btn {
             display:inline-block; margin-top:8px; padding:8px 14px;
-            background:#6d28d9; color:white; border-radius:8px;
+            background:#e91e8c; color:white; border-radius:8px;
             text-decoration:none; font-size:13px; font-weight:600;
             transition:background 0.2s;
         }
-        .map-btn:hover { background:#5b21b6; color:white; }
+        .map-btn:hover { background:#c2177a; color:white; }
         .map-btn-alt {
             display:inline-block; margin-top:6px; margin-left:8px;
             padding:8px 14px; background:#10b981; color:white;

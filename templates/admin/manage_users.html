@@ -1,0 +1,431 @@
+{% extends 'base.html' %}
+{% block title %}Manage Users{% endblock %}
+
+{% block extra_css %}
+<style>
+    .admin-page { max-width: 1100px; margin: 0 auto; padding: 36px 20px; }
+    .admin-page h1 { font-size: 1.8rem; font-weight: 800; margin-bottom: 4px; }
+    .subtitle { color: #6b7280; margin-bottom: 20px; font-size: 0.95rem; }
+
+    .top-bar { display:flex; gap:12px; margin-bottom:20px; flex-wrap:wrap; align-items:center; }
+    .search-box {
+        flex:1; min-width:220px; padding:10px 14px;
+        border:1.5px solid #d1d5db; border-radius:8px;
+        font-size:0.9rem; font-family:inherit;
+    }
+    .search-box:focus { outline:none; border-color:#e91e8c; }
+
+    .filter-tabs { display:flex; gap:8px; flex-wrap:wrap; }
+    .ftab {
+        padding:7px 18px; border-radius:20px; border:1.5px solid #e5e7eb;
+        background:#fff; font-size:0.84rem; font-weight:600;
+        cursor:pointer; transition:all 0.2s; color:#374151;
+    }
+    .ftab.active { background:#e91e8c; color:#fff; border-color:#e91e8c; }
+    .ftab:hover:not(.active) { border-color:#e91e8c; color:#e91e8c; }
+
+    .stat-row { display:flex; gap:12px; margin-bottom:20px; flex-wrap:wrap; }
+    .s-card {
+        background:#fff; border-radius:10px; padding:14px 22px;
+        box-shadow:0 2px 8px rgba(0,0,0,0.06); text-align:center; flex:1; min-width:110px;
+    }
+    .s-card .val { font-size:1.8rem; font-weight:800; color:#e91e8c; }
+    .s-card.green .val { color:#10b981; }
+    .s-card.amber .val { color:#f59e0b; }
+    .s-card .lbl { font-size:0.75rem; color:#6b7280; margin-top:2px; }
+
+    .table-wrap { background:#fff; border-radius:14px; box-shadow:0 2px 12px rgba(0,0,0,0.07); overflow-x:auto; }
+    table { width:100%; border-collapse:collapse; font-size:0.85rem; min-width:700px; }
+    th { background:#f9fafb; padding:12px 14px; text-align:left; font-weight:600; color:#374151; border-bottom:1.5px solid #f3f4f6; }
+    td { padding:11px 14px; border-bottom:1px solid #f9fafb; color:#374151; vertical-align:middle; }
+    tr:last-child td { border-bottom:none; }
+    tr:hover td { background:#fafafe; }
+
+    .avatar {
+        width:34px; height:34px; border-radius:50%;
+        background:linear-gradient(135deg,#e91e8c,#f06ab3);
+        display:flex; align-items:center; justify-content:center;
+        color:#fff; font-weight:700; font-size:0.88rem; flex-shrink:0;
+    }
+    .name-cell { display:flex; align-items:center; gap:10px; }
+
+    .vbadge { display:inline-flex; align-items:center; gap:4px; padding:4px 10px; border-radius:20px; font-size:0.75rem; font-weight:700; }
+    .vbadge.yes { background:#d1fae5; color:#065f46; }
+    .vbadge.no  { background:#fef3c7; color:#92400e; }
+
+    .btn-v, .btn-uv, .btn-view-u {
+        padding:5px 12px; border-radius:6px; border:none; font-size:0.78rem;
+        font-weight:600; cursor:pointer; transition:all 0.15s; white-space:nowrap;
+    }
+    .btn-v    { background:#d1fae5; color:#065f46; }
+    .btn-v:hover    { background:#10b981; color:#fff; }
+    .btn-uv   { background:#fee2e2; color:#991b1b; }
+    .btn-uv:hover   { background:#ef4444; color:#fff; }
+    .btn-view-u { background:#f06ab3; color:#fffff0; }
+    .btn-view-u:hover { background:#e91e8c; color:#fff; }
+
+    .empty-state { text-align:center; padding:48px; color:#9ca3af; }
+
+    /* ── Modal ── */
+    .overlay {
+        display:none; position:fixed; inset:0;
+        background:rgba(0,0,0,0.6); z-index:9000;
+        align-items:center; justify-content:center;
+        padding:20px;
+    }
+    .overlay.open { display:flex; }
+    .mbox {
+        background:#fff; border-radius:20px; width:100%; max-width:660px;
+        max-height:90vh; overflow-y:auto;
+        box-shadow:0 20px 60px rgba(0,0,0,0.3);
+        animation:mIn 0.22s ease;
+    }
+    @keyframes mIn { from{transform:scale(0.93) translateY(16px);opacity:0} to{transform:scale(1);opacity:1} }
+    .mhead {
+        padding:20px 24px 16px; border-bottom:1.5px solid #f3f4f6;
+        display:flex; align-items:center; justify-content:space-between;
+        position:sticky; top:0; background:#fff; z-index:5; border-radius:20px 20px 0 0;
+    }
+    .mtitle { font-size:1.1rem; font-weight:800; color:#1f2937; }
+    .mclose {
+        width:32px; height:32px; border-radius:50%; background:#f3f4f6;
+        border:none; cursor:pointer; font-size:1.1rem;
+        display:flex; align-items:center; justify-content:center;
+    }
+    .mclose:hover { background:#e5e7eb; }
+    .mbody { padding:24px; }
+
+    .msec { margin-bottom:20px; padding-bottom:20px; border-bottom:1.5px solid #f3f4f6; }
+    .msec:last-child { border-bottom:none; margin-bottom:0; padding-bottom:0; }
+    .msec-title { font-size:0.72rem; font-weight:700; color:#9ca3af; text-transform:uppercase; letter-spacing:0.5px; margin-bottom:12px; }
+    .mgrid { display:grid; grid-template-columns:1fr 1fr; gap:12px; }
+    @media(max-width:500px){ .mgrid{ grid-template-columns:1fr; } }
+    .mfield .mlabel { font-size:0.72rem; font-weight:600; color:#e91e8c; text-transform:uppercase; letter-spacing:0.4px; margin-bottom:4px; }
+    .mvalue { font-size:0.88rem; color:#1f2937; background:#f9fafb; padding:8px 12px; border-radius:8px; border:1px solid #f3f4f6; word-break:break-word; }
+
+    .avatar-lg {
+        width:60px; height:60px; border-radius:50%;
+        background:linear-gradient(135deg,#e91e8c,#f06ab3);
+        display:flex; align-items:center; justify-content:center;
+        color:#fff; font-weight:800; font-size:1.5rem; flex-shrink:0;
+    }
+    .ec-pill { display:inline-flex; align-items:center; gap:5px; background:#ede9fe; color:#e91e8c; padding:5px 12px; border-radius:20px; font-size:0.82rem; font-weight:600; margin:3px; }
+
+    .btn-mv { padding:10px 22px; border:none; border-radius:8px; font-weight:600; font-size:0.9rem; cursor:pointer; transition:all 0.2s; }
+    .btn-mv.v  { background:#10b981; color:#fff; }
+    .btn-mv.v:hover  { background:#059669; }
+    .btn-mv.uv { background:#ef4444; color:#fff; }
+    .btn-mv.uv:hover { background:#dc2626; }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="admin-page">
+    <h1>Manage Users 👥</h1>
+    <p class="subtitle">View registered users, check their details and verify their identity</p>
+
+    <div class="stat-row">
+        <div class="s-card">
+            <div class="val">{{ users | length }}</div>
+            <div class="lbl">Total Users</div>
+        </div>
+        <div class="s-card green">
+            <div class="val" id="stat-v">0</div>
+            <div class="lbl">Verified</div>
+        </div>
+        <div class="s-card amber">
+            <div class="val" id="stat-uv">0</div>
+            <div class="lbl">Unverified</div>
+        </div>
+    </div>
+
+    <div class="top-bar">
+        <input class="search-box" id="searchBox" type="text"
+               placeholder="🔍 Search name, email or phone..."
+               oninput="doSearch()">
+        <div class="filter-tabs">
+            <button class="ftab active" onclick="doFilter('all',this)">All</button>
+            <button class="ftab"        onclick="doFilter('verified',this)">✅ Verified</button>
+            <button class="ftab"        onclick="doFilter('unverified',this)">⏳ Unverified</button>
+        </div>
+    </div>
+
+    <div class="table-wrap">
+        <table>
+            <thead>
+                <tr>
+                    <th>#</th>
+                    <th>User</th>
+                    <th>Email</th>
+                    <th>Phone</th>
+                    <th>Registered</th>
+                    <th>Status</th>
+                    <th>Verify</th>
+                    <th>Details</th>
+                </tr>
+            </thead>
+            <tbody id="utbody">
+            {% for u in users %}
+            <tr id="urow-{{ u.id }}"
+                data-v="{{ u.is_verified or 0 }}"
+                data-search="{{ u.name|lower }} {{ u.email|lower }} {{ u.phone or '' }}">
+                <td>#{{ u.id }}</td>
+                <td>
+                    <div class="name-cell">
+                        <div class="avatar">{{ u.name[0].upper() }}</div>
+                        <div>
+                            <div style="font-weight:600;">{{ u.name }}</div>
+                            <div style="font-size:0.75rem;color:#9ca3af;">User</div>
+                        </div>
+                    </div>
+                </td>
+                <td style="font-size:0.84rem;">{{ u.email }}</td>
+                <td style="font-size:0.84rem;">{{ u.phone or 'N/A' }}</td>
+                <td style="font-size:0.82rem;">{{ u.created_at.split(' ')[0] if u.created_at else '—' }}</td>
+                <td>
+                    <span class="vbadge {{ 'yes' if u.is_verified else 'no' }}"
+                          id="vbadge-{{ u.id }}">
+                        {{ 'Verified' if u.is_verified else 'Unverified' }}
+                    </span>
+                </td>
+                <td>
+                    {% if u.is_verified %}
+                    <button class="btn-uv" id="vbtn-{{ u.id }}"
+                            onclick="toggleVerify({{ u.id }}, false)">✕ Unverify</button>
+                    {% else %}
+                    <button class="btn-v" id="vbtn-{{ u.id }}"
+                            onclick="toggleVerify({{ u.id }}, true)">✓ Verify</button>
+                    {% endif %}
+                </td>
+                <td>
+                    <button class="btn-view-u"
+                            onclick="openModal({{ u.id }})">View</button>
+                </td>
+            </tr>
+            {% else %}
+            <tr><td colspan="8" class="empty-state">No users found.</td></tr>
+            {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<!-- Modal -->
+<div class="overlay" id="umodal" onclick="if(event.target===this)closeModal()">
+    <div class="mbox">
+        <div class="mhead">
+            <div class="mtitle" id="m-title">User Details</div>
+            <button class="mclose" onclick="closeModal()">✕</button>
+        </div>
+        <div class="mbody" id="m-body"></div>
+    </div>
+</div>
+
+<script>
+// Build JS user map from server-side data
+var UDATA = {};
+{% for u in users %}
+UDATA[{{ u.id }}] = {
+    id:    {{ u.id }},
+    name:  {{ u.name | tojson }},
+    email: {{ u.email | tojson }},
+    phone: {{ (u.phone or '') | tojson }},
+    alt:   {{ (u.alternate_phone or '') | tojson }},
+    aadhar:{{ (u.aadhar_number or '') | tojson }},
+    curr:  {{ (u.current_address or '') | tojson }},
+    perm:  {{ (u.permanent_address or '') | tojson }},
+    cj:    {{ (u.contacts_json or '[]') | tojson }},
+    ecn:   {{ (u.emergency_contact_name or '') | tojson }},
+    ecp:   {{ (u.emergency_contact_phone or '') | tojson }},
+    ts:    {{ (u.created_at or '') | tojson }},
+    ver:   {{ u.is_verified or 0 }}
+};
+{% endfor %}
+
+// ── Stats ─────────────────────────────────────────────
+function refreshStats() {
+    var rows = document.querySelectorAll('#utbody tr[data-v]');
+    var v = 0, uv = 0;
+    rows.forEach(function(r) {
+        if (r.style.display === 'none') return;
+        (r.dataset.v === '1') ? v++ : uv++;
+    });
+    document.getElementById('stat-v').textContent  = v;
+    document.getElementById('stat-uv').textContent = uv;
+}
+refreshStats();
+
+// ── Search ────────────────────────────────────────────
+function doSearch() {
+    var q = document.getElementById('searchBox').value.toLowerCase().trim();
+    document.querySelectorAll('#utbody tr[data-search]').forEach(function(r) {
+        r.style.display = (!q || r.dataset.search.includes(q)) ? '' : 'none';
+    });
+    refreshStats();
+}
+
+// ── Filter ────────────────────────────────────────────
+var currentFilter = 'all';
+function doFilter(type, btn) {
+    currentFilter = type;
+    document.querySelectorAll('.ftab').forEach(function(b) { b.classList.remove('active'); });
+    btn.classList.add('active');
+    document.querySelectorAll('#utbody tr[data-v]').forEach(function(r) {
+        var show = type === 'all'
+            || (type === 'verified'   && r.dataset.v === '1')
+            || (type === 'unverified' && r.dataset.v === '0');
+        r.style.display = show ? '' : 'none';
+    });
+    refreshStats();
+}
+
+// ── Verify / Unverify ─────────────────────────────────
+function toggleVerify(id, makeVerified) {
+    fetch('/admin/users/' + id + '/verify', {
+        method:  'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body:    JSON.stringify({ verified: makeVerified })
+    })
+    .then(function(r) { return r.json(); })
+    .then(function(data) {
+        var badge = document.getElementById('vbadge-' + id);
+        var btn   = document.getElementById('vbtn-'   + id);
+        var row   = document.getElementById('urow-'   + id);
+
+        if (makeVerified) {
+            badge.textContent = '✅ Verified';
+            badge.className   = 'vbadge yes';
+            btn.textContent   = '✕ Unverify';
+            btn.className     = 'btn-uv';
+            btn.setAttribute('onclick', 'toggleVerify(' + id + ', false)');
+            row.dataset.v     = '1';
+        } else {
+            badge.textContent = '⏳ Unverified';
+            badge.className   = 'vbadge no';
+            btn.textContent   = '✓ Verify';
+            btn.className     = 'btn-v';
+            btn.setAttribute('onclick', 'toggleVerify(' + id + ', true)');
+            row.dataset.v     = '0';
+        }
+
+        if (UDATA[id]) UDATA[id].ver = makeVerified ? 1 : 0;
+
+        // Refresh modal verify button if open
+        var mbtn = document.getElementById('m-vbtn');
+        if (mbtn) updateModalVerifyBtn(id);
+
+        doFilter(currentFilter, document.querySelector('.ftab.active'));
+        showToast((makeVerified ? '✅ Verified' : '⏳ Unverified') + ': ' + (UDATA[id]?.name || 'User'), 'success');
+    })
+    .catch(function() { showToast('Failed. Try again.', 'error'); });
+}
+
+// ── Open modal ────────────────────────────────────────
+function openModal(id) {
+    var u = UDATA[id];
+    if (!u) { showToast('User data not found.', 'error'); return; }
+
+    document.getElementById('m-title').textContent = 'User — ' + u.name;
+
+    // Emergency contacts
+    var contacts = [];
+    try { contacts = JSON.parse(u.cj) || []; } catch(e) {}
+    if (!contacts.length && u.ecn && u.ecp)
+    contacts = [{
+        name: u.ecn,
+        phone: u.ecp,
+        email: ''
+    }];
+    var cHtml = contacts.length
+    ? contacts.map(function(c){
+        return `
+            <div style="
+                background:#f9fafb;
+                border:1px solid #e5e7eb;
+                border-radius:10px;
+                padding:10px 14px;
+                margin-bottom:8px;
+            ">
+                <div style="font-weight:600;color:#1f2937;">
+                    👤 ${c.name || 'Contact'}
+                </div>
+
+                <div style="font-size:0.84rem;color:#6b7280;margin-top:3px;">
+                    📞 ${c.phone || 'Not provided'}
+                </div>
+
+                <div style="font-size:0.84rem;color:#10b981;margin-top:3px;">
+                    📧 ${c.email || 'No email provided'}
+                </div>
+            </div>
+        `;
+      }).join('')
+    : '<span style="color:#9ca3af;font-size:0.85rem;">None saved</span>';
+
+    // Aadhar format XXXX XXXX XXXX
+    var aadhar = u.aadhar.replace(/\D/g,'');
+    var aFmt   = aadhar ? [aadhar.slice(0,4),aadhar.slice(4,8),aadhar.slice(8,12)].filter(Boolean).join(' ') : 'Not provided';
+
+    var vBtnClass = u.ver ? 'uv' : 'v';
+    var vBtnText  = u.ver ? '✕ Remove Verification' : '✓ Mark as Verified';
+
+    document.getElementById('m-body').innerHTML =
+        // Header row
+        '<div style="display:flex;align-items:center;gap:14px;margin-bottom:20px;">'
+        + '<div class="avatar-lg">'+u.name[0].toUpperCase()+'</div>'
+        + '<div>'
+        +   '<div style="font-size:1.1rem;font-weight:800;color:#1f2937;">'+u.name+'</div>'
+        +   '<div style="color:#6b7280;font-size:0.88rem;margin-top:2px;">'+u.email+'</div>'
+        +   '<div style="margin-top:6px;"><span class="vbadge '+(u.ver?'yes':'no')+'">'+
+                (u.ver?'✅ Verified':'⏳ Unverified')+'</span></div>'
+        + '</div>'
+        + '</div>'
+
+        + '<div class="msec"><div class="msec-title">👤 Personal Info</div>'
+        + '<div class="mgrid">'
+        + mf('Full Name',u.name) + mf('Email',u.email)
+        + mf('Phone',u.phone||'Not set') + mf('Alternate Phone',u.alt||'Not set')
+        + mf('Aadhar',aFmt) + mf('Registered',u.ts.split(' ')[0]||'—')
+        + '</div></div>'
+
+        + '<div class="msec"><div class="msec-title">🏠 Address</div>'
+        + '<div class="mgrid">'
+        + mf('Current Address',  u.curr||'Not provided')
+        + mf('Permanent Address',u.perm||'Not provided')
+        + '</div></div>'
+
+        + '<div class="msec"><div class="msec-title">🆘 Emergency Contacts</div>'
+        + '<div>'+cHtml+'</div></div>'
+
+        + '<div class="msec"><div class="msec-title">✅ Verification</div>'
+        + '<p style="color:#6b7280;font-size:0.84rem;margin-bottom:12px;">Mark this user as verified after confirming their identity.</p>'
+        + '<button class="btn-mv '+vBtnClass+'" id="m-vbtn" onclick="toggleVerify('+id+', '+(u.ver?'false':'true')+')">'+vBtnText+'</button>'
+        + '</div>';
+
+    document.getElementById('umodal').classList.add('open');
+    document.body.style.overflow = 'hidden';
+}
+
+function mf(label, value) {
+    return '<div class="mfield"><div class="mlabel">'+label+'</div><div class="mvalue">'+value+'</div></div>';
+}
+
+function updateModalVerifyBtn(id) {
+    var u    = UDATA[id];
+    var mbtn = document.getElementById('m-vbtn');
+    if (!u || !mbtn) return;
+    mbtn.className   = 'btn-mv ' + (u.ver ? 'uv' : 'v');
+    mbtn.textContent = u.ver ? '✕ Remove Verification' : '✓ Mark as Verified';
+    mbtn.setAttribute('onclick', 'toggleVerify('+id+', '+(u.ver?'false':'true')+')');
+}
+
+function closeModal() {
+    document.getElementById('umodal').classList.remove('open');
+    document.body.style.overflow = '';
+}
+
+document.addEventListener('keydown', function(e) {
+    if (e.key === 'Escape') { closeModal(); document.body.style.overflow = ''; }
+});
+</script>
+{% endblock %}

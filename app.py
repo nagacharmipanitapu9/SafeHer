@@ -6,17 +6,18 @@ from routes.sos import sos_bp
 from routes.admin import admin_bp
 from routes.chatbot import chatbot_bp
 from routes.shuttle import shuttle_bp
+from routes.safe_route import safe_route_bp        # ← NEW
 
 app = Flask(__name__)
 app.secret_key = 'your-secret-key-change-this'
 
-# Register Blueprints
-app.register_blueprint(auth_bp, url_prefix='/auth')
-app.register_blueprint(crime_bp, url_prefix='/crime')
-app.register_blueprint(sos_bp, url_prefix='/sos')
-app.register_blueprint(admin_bp, url_prefix='/admin')
-app.register_blueprint(chatbot_bp, url_prefix='/chatbot')
-app.register_blueprint(shuttle_bp, url_prefix='/shuttle')
+app.register_blueprint(auth_bp,        url_prefix='/auth')
+app.register_blueprint(crime_bp,       url_prefix='/crime')
+app.register_blueprint(sos_bp,         url_prefix='/sos')
+app.register_blueprint(admin_bp,       url_prefix='/admin')
+app.register_blueprint(chatbot_bp,     url_prefix='/chatbot')
+app.register_blueprint(shuttle_bp,     url_prefix='/shuttle')
+app.register_blueprint(safe_route_bp,  url_prefix='/safe-route')   # ← NEW
 
 @app.route('/')
 def index():
@@ -31,4 +32,3 @@ def dashboard():
 if __name__ == '__main__':
     init_db()
     app.run(debug=True)
-    

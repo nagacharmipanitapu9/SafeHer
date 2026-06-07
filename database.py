@@ -22,6 +22,7 @@ def init_db():
         address TEXT,
         emergency_contact_name TEXT,
         emergency_contact_phone TEXT,
+        email TEXT UNIQUE NOT NULL,
         created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
     )''')
 
@@ -71,7 +72,9 @@ def init_db():
     "ALTER TABLE users  ADD COLUMN aadhar_number TEXT",
     "ALTER TABLE users  ADD COLUMN current_address TEXT",
     "ALTER TABLE users  ADD COLUMN permanent_address TEXT",
-    "ALTER TABLE users  ADD COLUMN contacts_json TEXT DEFAULT '[]'",   # NEW
+    "ALTER TABLE users  ADD COLUMN contacts_json TEXT DEFAULT '[]'",
+    "ALTER TABLE users ADD COLUMN is_verified INTEGER DEFAULT 0",
+    "ALTER TABLE crimes ADD COLUMN incident_date TEXT",  # NEW
 ]
     for sql in safe_migrations:
         try:
