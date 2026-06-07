@@ -377,7 +377,7 @@ def geocode(place_name):
     try:
         resp = http_requests.get(
             'https://nominatim.openstreetmap.org/search',
-            params={'q': place_name, 'format': 'json', 'limit': 1},
+            params={'q': place_name + ', Hyderabad', 'format': 'json', 'limit': 1},
             headers={'User-Agent': 'SafeHer/3.0'}, timeout=8)
         r = resp.json()
         if r:
@@ -450,7 +450,7 @@ def find_safe_route():
     routes = get_osrm_routes(
         float(origin_lat), float(origin_lng),
         float(dest_lat),   float(dest_lng),
-        alternatives=3, profile=profile
+        alternatives=True, profile=profile
     )
     if not routes:
         return jsonify({'error': 'Could not calculate route between these locations. Make sure both points are reachable by foot in Hyderabad.'}), 500

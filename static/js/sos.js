@@ -22,12 +22,14 @@ window.addEventListener('load', function () {
                 warn.style.display    = 'none';
                 preview.style.display = 'block';
                 pills.innerHTML = contacts.map(function (c) {
-                    return `
-                        <div class="contact-pill">
-                            <div class="contact-name">👤 ${c.name}</div>
-                            <div class="contact-email">${c.email}</div>
-                        </div>
-                    `;
+                    var emailLine = c.email
+                        ? '📧 ' + c.email
+                        : '⚠️ No email — add one in Profile';
+                    var emailColor = c.email ? '' : 'color:#ef4444;font-weight:600;';
+                    return '<div class="contact-pill">'
+                        + '<div class="contact-name">👤 ' + c.name + '</div>'
+                        + '<div class="contact-email" style="' + emailColor + '">' + emailLine + '</div>'
+                        + '</div>';
                 }).join('');
             }
         })
@@ -176,7 +178,7 @@ function renderResult(data) {
             ? '<div class="location-wrapper">' +
             '<a href="' + data.maps_link + '" target="_blank" class="location-link">🗺️ View Your Live Location</a>' +
             '</div>'
-            : '');
+            : '')
         + setupNote;
 
     if (sentCount > 0) {

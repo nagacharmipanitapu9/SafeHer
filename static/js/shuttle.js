@@ -48,7 +48,6 @@ function detectLocation() {
             userLng = pos.coords.longitude;
 
             document.getElementById('locName').textContent = `${userLat.toFixed(4)}, ${userLng.toFixed(4)}`;
-            document.getElementById('locCoords').textContent = 'GPS location detected ✓';
 
             btn.disabled = false;
             btn.textContent = '📍';

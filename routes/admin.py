@@ -1,14 +1,9 @@
 from flask import Blueprint, render_template, request, redirect, session, jsonify
-import sqlite3
 from functools import wraps
+from database import get_db
 
 admin_bp = Blueprint('admin', __name__)
 VALID_STATUSES = ['pending', 'investigating', 'approved', 'resolved', 'rejected']
-
-def get_db():
-    conn = sqlite3.connect('safeher.db')
-    conn.row_factory = sqlite3.Row
-    return conn
 
 def admin_required(f):
     @wraps(f)

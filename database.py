@@ -22,7 +22,6 @@ def init_db():
         address TEXT,
         emergency_contact_name TEXT,
         emergency_contact_phone TEXT,
-        email TEXT UNIQUE NOT NULL,
         created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
     )''')
 
