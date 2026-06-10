@@ -10,7 +10,7 @@ The platform helps users travel more safely, report incidents, access emergency 
 
 ## ✨ Features
 
-* 🚨 **SOS Emergency Alert** – Send emergency alerts and location details to registered contacts.
+* 🚨 **SOS Emergency Alert & Fake Alarm** – Send emergency alerts and location details to registered contacts.
 * 📝 **Crime Reporting** – Report incidents with supporting evidence.
 * 🗺️ **Crime Map** – View reported crime locations on an interactive map.
 * 🛣️ **Safe Route Planner** – Find safer routes based on crime data and area safety.
@@ -66,39 +66,4 @@ http://127.0.0.1:5000
 
 ---
 
-## 📌 Core Modules
 
-| Module             | Purpose                   |
-| ------------------ | ------------------------- |
-| Authentication     | User registration & login |
-| SOS System         | Emergency alerts          |
-| Crime Reporting    | Incident reporting        |
-| Crime Map          | Crime visualization       |
-| Safe Route Planner | Safety-based navigation   |
-| SHE Shuttle        | Transport assistance      |
-| Chatbot            | Safety guidance           |
-| Admin Panel        | User & report management  |
-
----
-
-## 🚀 Future Enhancements
-
-* Real-time emergency tracking
-* Voice recording during SOS
-* AI-based crime risk prediction
-* Mobile application
-* Push notifications
-* Nearby police and hospital routing
-* Live public transport tracking
-
----
-
-## 👩‍💻 Developed By
-
-**Nagacharmi Panitapu**
-
----
-
-## 📄 License
-
-This project is intended for educational and research purposes.
